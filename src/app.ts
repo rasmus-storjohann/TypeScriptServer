@@ -8,14 +8,13 @@ import * as path from "path";
 
 class Server {
     public app: express.Application;
-    
+
     public static bootstrap(): Server {
         return new Server();
     }
-    
+
     constructor() {
         this.app = express();
-        this.config();
+        this.configure();
     }
 }
-

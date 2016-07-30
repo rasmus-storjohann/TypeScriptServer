@@ -40,5 +40,4 @@ module.exports = function(grunt) {
     "ts",
     "tslint"
   ]);
-
 };
