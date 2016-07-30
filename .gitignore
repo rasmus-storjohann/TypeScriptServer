@@ -1,2 +1,5 @@
 doc/plan.lyx~
 node_modules
+**/.baseDir.*
+npm-debug.log
+
