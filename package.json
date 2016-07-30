@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/rasmus-storjohann/storbot#readme",
   "dependencies": {
-    "express": "^4.14.0"
+    "express": "^4.14.0",
+    "typescript": "^1.8.10"
   }
 }
