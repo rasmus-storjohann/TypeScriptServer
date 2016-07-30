@@ -77,7 +77,7 @@ git
 \end_layout
 
 \begin_layout Enumerate
-server side framework: express
+server side framework: node.js, express
 \end_layout
 
 \begin_layout Enumerate
@@ -98,6 +98,18 @@ package management: npm, avoid bower if possible
 
 \begin_layout Enumerate
 unit testing framework: jasmin
+\end_layout
+
+\begin_layout Standard
+Setup log
+\end_layout
+
+\begin_layout Enumerate
+git init
+\end_layout
+
+\begin_layout Enumerate
+install node: apt-get install nodejs npm
 \end_layout
 
 \end_body

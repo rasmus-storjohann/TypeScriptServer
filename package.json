@@ -1,0 +1,26 @@
+{
+  "name": "storbot",
+  "version": "0.1.0",
+  "description": "It's the storbot",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rasmus-storjohann/storbot.git"
+  },
+  "keywords": [
+    "key",
+    "words"
+  ],
+  "author": "Rasmus Storjohann",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rasmus-storjohann/storbot/issues"
+  },
+  "homepage": "https://github.com/rasmus-storjohann/storbot#readme"
+}
