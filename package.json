@@ -2,16 +2,16 @@
   "name": "storbot",
   "version": "0.1.0",
   "description": "It's the storbot",
-  "private" : true,
+  "private": true,
   "main": "index.js",
   "directories": {
     "doc": "doc"
   },
-  "engines" : {
+  "engines": {
     "node": "~5.6"
   },
   "scripts": {
-    "start" : "node ./bin/www",
+    "start": "node ./bin/www",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,5 +27,8 @@
   "bugs": {
     "url": "https://github.com/rasmus-storjohann/storbot/issues"
   },
-  "homepage": "https://github.com/rasmus-storjohann/storbot#readme"
+  "homepage": "https://github.com/rasmus-storjohann/storbot#readme",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
 }
