@@ -77,15 +77,11 @@ git
 \end_layout
 
 \begin_layout Enumerate
-server side framework: node.js, express
+server side framework: node.js, express, TypeScript
 \end_layout
 
 \begin_layout Enumerate
-client side framework: angular
-\end_layout
-
-\begin_layout Enumerate
-compiler: TypeScript
+client side framework: angular, TypeScript
 \end_layout
 
 \begin_layout Enumerate
@@ -106,10 +102,6 @@ Setup log
 
 \begin_layout Enumerate
 git init
-\end_layout
-
-\begin_layout Enumerate
-install node: apt-get install nodejs npm
 \end_layout
 
 \end_body
