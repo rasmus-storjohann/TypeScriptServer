@@ -9,11 +9,17 @@ import * as path from "path";
 class Server {
     private app: express.Application;
 
-    public static bootstrap(): Server {
-        return new Server();
-    }
-
     constructor() {
         this.app = express();
+
+        this.app.get("/", function(req, res) {
+          res.send("Hello World!");
+        });
+    }
+
+    public listen() {
+      this.app.listen(3000, function () {
+          console.log("Example app listening on port 3000!");
+      });
     }
 }
