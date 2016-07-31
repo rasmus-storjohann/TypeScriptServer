@@ -7,7 +7,7 @@ import * as express from "express";
 import * as path from "path";
 
 class Server {
-    public app: express.Application;
+    private app: express.Application;
 
     public static bootstrap(): Server {
         return new Server();
@@ -15,6 +15,5 @@ class Server {
 
     constructor() {
         this.app = express();
-        this.configure();
     }
 }
