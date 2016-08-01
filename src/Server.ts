@@ -2,26 +2,17 @@
 
 "use strict";
 
-import * as bodyParser from "body-parser";
-import * as express from "express";
-import * as path from "path";
+import * as expressAdapter from "./adapters/ExpressAdapter";
 
 class Server {
-    private app: express.Application;
+    private app: expressAdapter.ExpressAdapter;
 
     constructor() {
-        this.app = express();
-
-        this.app.get("/", function(req, res) {
-          console.log("Sending Hello World!");
-          res.send("Hello World!");
-        });
+        this.app = new expressAdapter.ExpressAdapter;
     }
 
     public listen() {
-      this.app.listen(3000, function () {
-          console.log("Example app listening on port 3000!");
-      });
+      this.app.listen();
     }
 }
 
