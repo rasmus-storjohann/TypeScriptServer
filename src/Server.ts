@@ -4,7 +4,7 @@
 
 import * as expressAdapter from "./adapters/ExpressAdapter";
 
-class Server {
+export class Server {
     private app: expressAdapter.ExpressAdapter;
 
     constructor() {
@@ -15,5 +15,3 @@ class Server {
       this.app.listen();
     }
 }
-
-exports.Server = Server;
