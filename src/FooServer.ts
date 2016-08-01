@@ -9,7 +9,7 @@ import * as path from "path";
 class FooServer {
     private app: express.Application;
 
-    public bootstrap() {
+    public static bootstrap() {
       return new FooServer();
     }
 
