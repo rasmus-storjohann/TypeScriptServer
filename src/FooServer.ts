@@ -27,3 +27,5 @@ class FooServer {
       });
     }
 }
+
+exports.FooServer = FooServer;
