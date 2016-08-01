@@ -6,17 +6,14 @@ import * as bodyParser from "body-parser";
 import * as express from "express";
 import * as path from "path";
 
-class FooServer {
+class Server {
     private app: express.Application;
-
-    public static bootstrap() {
-      return new FooServer();
-    }
 
     constructor() {
         this.app = express();
 
         this.app.get("/", function(req, res) {
+          console.log("Sending Hello World!");
           res.send("Hello World!");
         });
     }
@@ -28,4 +25,4 @@ class FooServer {
     }
 }
 
-exports.FooServer = FooServer;
+exports.Server = Server;

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 "use strict";
 
-const serverModule = require("./FooServer.js")
+const serverModule = require("./Server.js")
 
-new serverModule.FooServer().listen();
+new serverModule.Server().listen();
