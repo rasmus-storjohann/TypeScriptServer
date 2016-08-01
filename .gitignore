@@ -3,3 +3,4 @@ node_modules
 **/.baseDir.*
 npm-debug.log
 app.js
+src/**/*.js

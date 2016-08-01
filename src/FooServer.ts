@@ -6,8 +6,12 @@ import * as bodyParser from "body-parser";
 import * as express from "express";
 import * as path from "path";
 
-class Server {
+class FooServer {
     private app: express.Application;
+
+    public bootstrap() {
+      return new FooServer();
+    }
 
     constructor() {
         this.app = express();

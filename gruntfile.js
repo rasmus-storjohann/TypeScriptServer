@@ -11,7 +11,7 @@ module.exports = function(grunt) {
         options: {
           module: "commonjs",
           noLib: true,
-          target: "es6",
+          target: "es3",
           sourceMap: false
         }
       }
