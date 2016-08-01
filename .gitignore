@@ -5,4 +5,4 @@ npm-debug.log
 app.js
 src/**/*.js
 .tscache
-bin/**/*.js
+js/**/*.js

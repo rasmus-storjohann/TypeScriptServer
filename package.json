@@ -12,7 +12,7 @@
   },
   "scripts": {
     "grunt": "grunt",
-    "start": "node ./bin/www",
+    "start": "node ./js/www",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
