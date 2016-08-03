@@ -5,13 +5,13 @@
 import * as expressAdapter from "./adapters/ExpressAdapter";
 
 export class Server {
-    private app: expressAdapter.ExpressAdapter;
+    private expressAdapter: expressAdapter.ExpressAdapter;
 
     constructor() {
-        this.app = new expressAdapter.ExpressAdapter;
+        this.expressAdapter = new expressAdapter.ExpressAdapter;
     }
 
     public listen() {
-      this.app.listen();
+      this.expressAdapter.listen();
     }
 }
