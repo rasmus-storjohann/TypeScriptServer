@@ -10,11 +10,12 @@ export class ContactRepository implements IContactRepository {
     this._contact = new Contact("", "", false);
   }
 
-  save(contact: Contact) {
+  saveContact(contact: Contact) {
     this._contact = contact;
+    return true;
   }
 
-  load() {
+  loadContact() {
     return this._contact;
   }
 }
