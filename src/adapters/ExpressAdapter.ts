@@ -2,11 +2,13 @@
 
 "use strict";
 
+import { IWebAdapter } from "../businessInterfaces/IWebAdapter";
+
 import * as bodyParser from "body-parser";
 import * as express from "express";
 import * as path from "path";
 
-export class ExpressAdapter {
+export class ExpressAdapter implements IWebAdapter {
     private app: express.Application;
 
     constructor() {
