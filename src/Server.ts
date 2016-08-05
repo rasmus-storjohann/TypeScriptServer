@@ -12,7 +12,6 @@ import * as path from "path";
 
 export class Server {
   private _application: express.Application;
-  private _router : express.Router;
   private _port: number;
 
   private _expressAdapter: expressAdapter.ExpressAdapter;
@@ -26,14 +25,8 @@ export class Server {
 
     this._port = 3000;
     this._application = express();
-    this._router = express.Router();
 
-    this._router.get("/", function(req, res) {
-      console.log("Sending Hello World!");
-      res.send("Hello World!");
-    });
-
-    this._application.use("/", this._router);
+    this._application.use("/contact", this._expressAdapter.Router());
   }
 
   public listen() {
