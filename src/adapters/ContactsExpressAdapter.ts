@@ -14,10 +14,13 @@ export class ContactsExpressAdapter {
 
   public Router() {
     var router = express.Router();
+    var service = this._contactService;
 
     router.get("/", function(req, res) {
-      console.log("Sending Hello World!");
-      res.send("Hello World!");
+      var contact = service.loadContact();
+
+      console.log("Sending contact!");
+      res.json(contact);
     });
 
     return router;
