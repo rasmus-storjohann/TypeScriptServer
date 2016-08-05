@@ -12,7 +12,9 @@ export class Server {
   private _contactService: contactService.ContactService;
 
   constructor() {
-    this._expressAdapter = new expressAdapter.ExpressAdapter;
+    var port = 3000;
+
+    this._expressAdapter = new expressAdapter.ExpressAdapter(port);
     this._contactRepository = new contactRepository.ContactRepository;
     this._contactService = new contactService.ContactService(this._contactRepository, this._expressAdapter);
   }

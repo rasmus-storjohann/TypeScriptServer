@@ -9,19 +9,21 @@ import * as express from "express";
 import * as path from "path";
 
 export class ExpressAdapter implements IWebAdapter {
-    private app: express.Application;
+    private _application: express.Application;
+    private _port: number;
 
-    constructor() {
-        this.app = express();
+    constructor(port: number) {
+      this._port = port;
+      this._application = express();
 
-        this.app.get("/", function(req, res) {
-          console.log("Sending Hello World!");
-          res.send("Hello World!");
-        });
+      this._application.get("/", function(req, res) {
+        console.log("Sending Hello World!");
+        res.send("Hello World!");
+      });
     }
 
     public listen() {
-      this.app.listen(3000, function () {
+      this._application.listen(this._port, function () {
           console.log("Example app listening on port 3000!");
       });
     }
