@@ -16,12 +16,11 @@ export class ContactsExpressAdapter {
     var router = express.Router();
     var service = this._contactService;
 
-    router.get("/", function(req, res) {
-      var contact = service.loadContact();
-
-      console.log("Sending contact!");
-      res.json(contact);
-    });
+    router.get("/contacts", function(req, res) {  res.json(service.loadContact()); })
+    //.get("/contact/:id", function(req, res) {   res.json(service.loadContact(req.id)); })
+    //.put("/contact/:id", function(req, res) {   res.json(service.saveContact()); })
+    //.post("/contact", function(req, res) {      res.json(service.saveContact()); })
+    ;
 
     return router;
   }

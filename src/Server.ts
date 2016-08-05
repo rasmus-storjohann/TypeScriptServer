@@ -26,7 +26,15 @@ export class Server {
     this._port = 3000;
     this._application = express();
 
-    this._application.use("/contact", this._expressAdapter.Router());
+    var aboutRouter = express.Router();
+
+    aboutRouter.get("/about", function(req, res) {
+      console.log("Sending about!");
+      res.send("About");
+    });
+
+    this._application.use("/", aboutRouter);
+    this._application.use("/", this._expressAdapter.Router());
   }
 
   public listen() {
