@@ -2,11 +2,16 @@
 
 "use strict";
 
+import * as contactService from "../businessObjects/ContactService";
 import * as express from "express";
 
-import { IWebAdapter } from "../businessInterfaces/IWebAdapter";
+export class ContactsExpressAdapter {
+  private _contactService: contactService.ContactService;
 
-export class ExpressAdapter implements IWebAdapter {
+  constructor(contactService: contactService.ContactService) {
+    this._contactService = contactService;
+  }
+
   public Router() {
     var router = express.Router();
 

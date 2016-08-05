@@ -2,7 +2,7 @@
 
 "use strict";
 
-import * as expressAdapter from "./adapters/ExpressAdapter";
+import * as expressAdapter from "./adapters/ContactsExpressAdapter";
 import * as contactRepository from "./adapters/ContactRepository";
 import * as contactService from "./businessObjects/ContactService";
 
@@ -14,14 +14,14 @@ export class Server {
   private _application: express.Application;
   private _port: number;
 
-  private _expressAdapter: expressAdapter.ExpressAdapter;
+  private _expressAdapter: expressAdapter.ContactsExpressAdapter;
   private _contactRepository: contactRepository.ContactRepository;
   private _contactService: contactService.ContactService;
 
   constructor() {
-    this._expressAdapter = new expressAdapter.ExpressAdapter();
     this._contactRepository = new contactRepository.ContactRepository;
-    this._contactService = new contactService.ContactService(this._contactRepository, this._expressAdapter);
+    this._contactService = new contactService.ContactService(this._contactRepository);
+    this._expressAdapter = new expressAdapter.ContactsExpressAdapter(this._contactService);
 
     this._port = 3000;
     this._application = express();
