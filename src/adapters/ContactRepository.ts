@@ -11,6 +11,11 @@ export class ContactRepository implements IContactRepository {
   }
 
   saveContact(contact: Contact) {
+    console.log("Saving contact with first name = " +
+                  contact._firstName + ", last name = " +
+                  contact._lastName + " and star = " +
+                  contact._star);
+
     this._contact = contact;
     return true;
   }

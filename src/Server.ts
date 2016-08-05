@@ -6,7 +6,6 @@ import * as expressAdapter from "./adapters/ContactsExpressAdapter";
 import * as contactRepository from "./adapters/ContactRepository";
 import * as contactService from "./businessObjects/ContactService";
 
-import * as bodyParser from "body-parser";
 import * as express from "express";
 import * as path from "path";
 
