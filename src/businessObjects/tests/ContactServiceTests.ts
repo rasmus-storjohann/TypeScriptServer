@@ -1,5 +1,3 @@
-/// <reference path="../../../typings/globals/mocha/index.d.ts" />
-
 import * as contactService from "../ContactService";
 
 describe("ContactService", () => {

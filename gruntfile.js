@@ -39,13 +39,19 @@ module.exports = function(grunt) {
 				reporter: 'tap'
 			},
 			all: { src: ['js/**/tests/*.js'] }
-		}
+		},
+    nodemon: {
+      dev: {
+        script: './js/www'
+      }
+    }
   });
 
   grunt.loadNpmTasks("grunt-contrib-watch");
   grunt.loadNpmTasks("grunt-ts");
   grunt.loadNpmTasks("grunt-tslint");
   grunt.loadNpmTasks('grunt-simple-mocha');
+  grunt.loadNpmTasks('grunt-nodemon');
 
   grunt.registerTask("default", [ "ts", "tslint", "simplemocha" ]);
 };
