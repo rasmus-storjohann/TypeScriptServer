@@ -29,15 +29,23 @@ module.exports = function(grunt) {
         files: ["js/src/**/*.ts", "src/**/*.ts"],
         tasks: ["ts", "tslint"]
       }
-    }
+    },
+    simplemocha: {
+			options: {
+				globals: ['expect'],
+				timeout: 3000,
+				ignoreLeaks: false,
+				ui: 'bdd',
+				reporter: 'tap'
+			},
+			all: { src: ['js/**/tests/*.ts'] }
+		}
   });
 
   grunt.loadNpmTasks("grunt-contrib-watch");
   grunt.loadNpmTasks("grunt-ts");
   grunt.loadNpmTasks("grunt-tslint");
+  grunt.loadNpmTasks('grunt-simple-mocha');
 
-  grunt.registerTask("default", [
-    "ts",
-    "tslint"
-  ]);
+  grunt.registerTask("default", [ "ts", "tslint", "simplemocha" ]);
 };

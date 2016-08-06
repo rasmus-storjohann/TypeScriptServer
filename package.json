@@ -11,9 +11,7 @@
     "node": "~5.6"
   },
   "scripts": {
-    "grunt": "grunt",
-    "start": "node ./js/www",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./js/www"
   },
   "repository": {
     "type": "git",
@@ -31,14 +29,19 @@
   "homepage": "https://github.com/rasmus-storjohann/storbot#readme",
   "dependencies": {
     "body-parser": "^1.15.2",
+    "chai": "^3.5.0",
     "express": "^4.14.0",
     "grunt": "^1.0.1",
     "grunt-cli": "^1.2.0",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-ts": "^6.0.0-beta.3",
     "grunt-tslint": "^3.1.1",
+    "mocha": "^3.0.1",
     "tslint": "^3.14.0",
     "typescript": "^1.8.10",
     "typings": "^1.3.2"
+  },
+  "devDependencies": {
+    "grunt-simple-mocha": "^0.4.1"
   }
 }
