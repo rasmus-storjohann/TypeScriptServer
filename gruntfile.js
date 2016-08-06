@@ -31,17 +31,17 @@ module.exports = function(grunt) {
       }
     },
     simplemocha: {
-      all: { src: ['js/**/spec/*.js'] },
+      all: { src: ["js/**/spec/*.js"] },
       options: {
-        globals: ['expect'],
+        globals: ["expect"],
         timeout: 3000,
         ignoreLeaks: false,
-        ui: 'bdd'
+        ui: "bdd"
       }
     },
     nodemon: {
       dev: {
-        script: './js/www'
+        script: "./js/www"
       }
     }
   });
@@ -49,8 +49,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-contrib-watch");
   grunt.loadNpmTasks("grunt-ts");
   grunt.loadNpmTasks("grunt-tslint");
-  grunt.loadNpmTasks('grunt-simple-mocha');
-  grunt.loadNpmTasks('grunt-nodemon');
+  grunt.loadNpmTasks("grunt-simple-mocha");
+  grunt.loadNpmTasks("grunt-nodemon");
 
   grunt.registerTask("default", [ "ts", "tslint", "simplemocha" ]);
   grunt.registerTask("start", [ "nodemon" ]);

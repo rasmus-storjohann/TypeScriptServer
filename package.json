@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "grunt-nodemon": "^0.4.2",
-    "grunt-simple-mocha": "^0.4.1"
+    "grunt-simple-mocha": "^0.4.1",
+    "supertest": "^2.0.0"
   }
 }
