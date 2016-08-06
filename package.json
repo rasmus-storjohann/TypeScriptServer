@@ -10,9 +10,6 @@
   "engines": {
     "node": "~5.6"
   },
-  "scripts": {
-    "start": "node ./js/www"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rasmus-storjohann/storbot.git"
