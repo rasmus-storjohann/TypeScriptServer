@@ -1,50 +1,28 @@
-import * as TypeMoq from "typemoq";
+import * as typeMoq from "typemoq";
+import * as chai from "chai";
 import * as contactService from "../ContactService";
 import * as contactRepository from "../../adapters/ContactRepository";
 
-interface ISaveFunction {
-  (contact: number) : boolean;
-}
-
-interface IRepository {
-  save: ISaveFunction;
-}
-
-class Repository implements IRepository {
-  public save(n: number) {
-    return true;
-  }
-}
-
-class Service {
-  private _repo : IRepository;
-  constructor(repo: IRepository) {
-    this._repo = repo;
-  }
-  public save(n: number) {
-    this._repo.save(n);
-  }
-}
-
 describe("ContactService", () => {
     var subject: contactService.ContactService;
-    var mock: TypeMoq.Mock<Repository>;
-    var mockRepository: TypeMoq.Mock<contactRepository.ContactRepository>;
+    var mockRepository: typeMoq.Mock<contactRepository.ContactRepository>;
 
     beforeEach(function () {
-      mock = TypeMoq.Mock.ofType(Repository);
-      mockRepository = TypeMoq.Mock.ofType(contactRepository.ContactRepository);
+      mockRepository = typeMoq.Mock.ofType(contactRepository.ContactRepository);
       subject = new contactService.ContactService(mockRepository.object);
     });
 
-    describe("Dummy mock tests", () => {
-      it("should...", () => {
-        mock.object.save(5);
-        mock.verify(x => x.save(5), TypeMoq.Times.atLeastOnce());
-      });
-      it("should also...", () => {
+    describe("#loadAllContacts", () => {
+      it("should call loadAllContacts on the repository", () => {
         subject.loadAllContacts();
-        mockRepository.verify(x => x.loadAllContacts(), TypeMoq.Times.atLeastOnce());
+        mockRepository.verify(x => x.loadAllContacts(), typeMoq.Times.once());
+      });
+
+      it("should return value received from the repository", () => {
+        var aContact = { _id: 5, _firstName: "foo", _lastName: "bar", _star: true };
+        mockRepository.setup(x => x.loadAllContacts()).returns(() => [aContact]);
+        var result = subject.loadAllContacts();
+        chai.expect(result).to.deep.eq([aContact]);
       });
     });
 });
