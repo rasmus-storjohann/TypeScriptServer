@@ -19,16 +19,17 @@ export class ContactsExpressAdapter {
     var router = express.Router();
     router.use(bodyParser.json());
     router
-    .get("/contacts", function(req, res) {
-        res.json(service.loadAllContacts());
-    })
     .get("/contact/:id", function(req, res) {
       var id = parseInt(req.params.id);
       var contact = service.loadContact(id);
       res.json(contact);
     })
-    //.get("/contact/:id", function(req, res) {   res.json(service.loadContact(req.id)); })
-    //.put("/contact/:id", function(req, res) {   res.json(service.saveContact()); })
+    .put("/contact/:id", function(req, res) {
+      var id = parseInt(req.params.id);
+      var contact = service.updateContact(id, req.body);
+      res.json(contact);
+    })
+    .get("/contacts", function(req, res) { res.json(service.loadAllContacts()); })
     .post("/contact", function(req, res, next) {  res.send(service.saveContact(req.body)); })
     ;
 

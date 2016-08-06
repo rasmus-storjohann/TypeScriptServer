@@ -21,6 +21,12 @@ export class ContactRepository implements IContactRepository {
     return true;
   }
 
+  updateContact(id: number, contact: Contact)
+  {
+    this._contact[id] = contact;
+    return true;
+  }
+
   loadAllContacts() {
     return this._contact;
   }
