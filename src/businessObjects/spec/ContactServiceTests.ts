@@ -1,6 +1,6 @@
 import * as TypeMoq from "typemoq";
 import * as contactService from "../ContactService";
-import { IContactRepository } from "../../businessInterfaces/IContactRepository";
+import * as contactRepository from "../../adapters/ContactRepository";
 
 interface ISaveFunction {
   (contact: number) : boolean;
@@ -28,30 +28,23 @@ class Service {
 
 describe("ContactService", () => {
     var subject: contactService.ContactService;
+    var mock: TypeMoq.Mock<Repository>;
+    var mockRepository: TypeMoq.Mock<contactRepository.ContactRepository>;
 
     beforeEach(function () {
-      subject = new contactService.ContactService(null);
+      mock = TypeMoq.Mock.ofType(Repository);
+      mockRepository = TypeMoq.Mock.ofType(contactRepository.ContactRepository);
+      subject = new contactService.ContactService(mockRepository.object);
     });
 
     describe("Dummy mock tests", () => {
       it("should...", () => {
-        let mock = TypeMoq.Mock.ofType(Repository);
         mock.object.save(5);
         mock.verify(x => x.save(5), TypeMoq.Times.atLeastOnce());
       });
-    });
-
-    describe("#loadAllContacts", () => {
-        it("should...", () => {
-
-          var someFunc = function(){
-            return "";
-          };
-
-          let mock: TypeMoq.Mock<() => string> = TypeMoq.Mock.ofInstance(someFunc);
-          mock.object();
-          mock.verify(x => x(), TypeMoq.Times.atLeastOnce());
-
-        });
+      it("should also...", () => {
+        subject.loadAllContacts();
+        mockRepository.verify(x => x.loadAllContacts(), TypeMoq.Times.atLeastOnce());
+      });
     });
 });
