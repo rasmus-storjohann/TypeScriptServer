@@ -39,7 +39,6 @@
     "typedef": [true,
       "callSignature",
       "indexSignature",
-      "parameter",
       "propertySignature",
       "variableDeclarator",
       "memberVariableDeclarator"],
@@ -58,4 +57,3 @@
     ]
   }
 }
-
