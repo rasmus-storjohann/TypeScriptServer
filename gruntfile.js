@@ -31,15 +31,14 @@ module.exports = function(grunt) {
       }
     },
     simplemocha: {
-			options: {
-				globals: ['expect'],
-				timeout: 3000,
-				ignoreLeaks: false,
-				ui: 'bdd',
-				reporter: 'tap'
-			},
-			all: { src: ['js/**/spec/*.js'] }
-		},
+      all: { src: ['js/**/spec/*.js'] },
+      options: {
+        globals: ['expect'],
+        timeout: 3000,
+        ignoreLeaks: false,
+        ui: 'bdd'
+      }
+    },
     nodemon: {
       dev: {
         script: './js/www'
