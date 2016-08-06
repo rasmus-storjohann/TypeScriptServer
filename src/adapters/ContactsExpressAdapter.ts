@@ -2,14 +2,14 @@
 
 "use strict";
 
-import * as contactService from "../businessObjects/ContactService";
+import { IContactService } from "../businessInterfaces/IContactService";
 import * as express from "express";
 import * as bodyParser from "body-parser";
 
 export class ContactsExpressAdapter {
-  private _contactService: contactService.ContactService;
+  private _contactService: IContactService;
 
-  constructor(contactService: contactService.ContactService) {
+  constructor(contactService: IContactService) {
     this._contactService = contactService;
   }
 

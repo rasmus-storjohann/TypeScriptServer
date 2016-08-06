@@ -1,9 +1,10 @@
 "use strict";
 
-import { IContactRepository } from "../businessInterfaces/IContactRepository";
 import { Contact } from "../businessInterfaces/Contact";
+import { IContactService } from "../businessInterfaces/IContactService";
+import { IContactRepository } from "../businessInterfaces/IContactRepository";
 
-export class ContactService {
+export class ContactService implements IContactService {
   private _repository: IContactRepository;
 
   constructor(repository: IContactRepository) {
