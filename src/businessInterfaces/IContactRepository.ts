@@ -7,7 +7,7 @@ interface IContactSaveFunction {
 }
 
 interface IContactLoadFunction {
-  () : Contact;
+  (id: number) : Contact;
 }
 
 export interface IContactRepository {
