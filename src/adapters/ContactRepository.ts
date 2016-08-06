@@ -34,4 +34,9 @@ export class ContactRepository implements IContactRepository {
   loadContact(id: number) {
     return this._contact[id];
   }
+
+  deleteContact(id: number) {
+    delete this._contact[id];
+    return true;
+  }
 }

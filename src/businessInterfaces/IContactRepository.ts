@@ -18,9 +18,14 @@ interface IContactLoadAllFunction {
   () : Contact[];
 }
 
+interface IContactDeleteFunction {
+  (id: number) : boolean;
+}
+
 export interface IContactRepository {
   saveContact: IContactSaveFunction;
   loadContact: IContactLoadFunction;
   loadAllContacts: IContactLoadAllFunction;
   updateContact: IContactUpdateFunction;
+  deleteContact: IContactDeleteFunction;
 }

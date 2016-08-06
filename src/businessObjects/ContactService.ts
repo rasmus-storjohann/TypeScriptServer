@@ -14,17 +14,19 @@ export class ContactService {
     return this._repository.saveContact(contact);
   }
 
-  updateContact(id: number, contact: Contact)
-  {
+  updateContact(id: number, contact: Contact) {
     return this._repository.updateContact(id, contact);
   }
 
-  loadAllContacts()
-  {
+  loadAllContacts() {
     return this._repository.loadAllContacts();
   }
 
   loadContact(id: number) {
     return this._repository.loadContact(id);
+  }
+
+  deleteContact(id: number) {
+    return this._repository.deleteContact(id);
   }
 }

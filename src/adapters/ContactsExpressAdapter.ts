@@ -31,6 +31,10 @@ export class ContactsExpressAdapter {
     })
     .get("/contacts", function(req, res) { res.json(service.loadAllContacts()); })
     .post("/contact", function(req, res, next) {  res.send(service.saveContact(req.body)); })
+    .delete("/contact/:id", function(req, res) {
+      var id = parseInt(req.params.id);
+      res.send(service.deleteContact(id));
+    })
     ;
 
     return router;
