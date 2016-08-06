@@ -54,4 +54,5 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-nodemon');
 
   grunt.registerTask("default", [ "ts", "tslint", "simplemocha" ]);
+  grunt.registerTask("start", [ "nodemon" ]);
 };
