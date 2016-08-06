@@ -10,7 +10,12 @@ interface IContactLoadFunction {
   (id: number) : Contact;
 }
 
+interface IContactLoadAllFunction {
+  () : Contact[];
+}
+
 export interface IContactRepository {
   saveContact: IContactSaveFunction;
   loadContact: IContactLoadFunction;
+  loadAllContacts: IContactLoadAllFunction;
 }

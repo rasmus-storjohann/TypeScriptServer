@@ -19,6 +19,9 @@ export class ContactsExpressAdapter {
     var router = express.Router();
     router.use(bodyParser.json());
     router
+    .get("/contacts", function(req, res) {
+        res.json(service.loadAllContacts());
+    })
     .get("/contact/:id", function(req, res) {
       var id = parseInt(req.params.id);
       var contact = service.loadContact(id);

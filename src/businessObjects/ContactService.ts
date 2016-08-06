@@ -14,6 +14,11 @@ export class ContactService {
     return this._repository.saveContact(contact);
   }
 
+  loadAllContacts()
+  {
+    return this._repository.loadAllContacts();
+  }
+
   loadContact(id: number) {
     return this._repository.loadContact(id);
   }
