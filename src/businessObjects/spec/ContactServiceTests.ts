@@ -19,10 +19,12 @@ describe("ContactService", () => {
       });
 
       it("should return value received from the repository", () => {
-        var aContact = { _id: 5, _firstName: "foo", _lastName: "bar", _star: true };
-        mockRepository.setup(x => x.loadAllContacts()).returns(() => [aContact]);
-        var result = subject.loadAllContacts();
-        chai.expect(result).to.deep.eq([aContact]);
+        var someContacts = [{ _id: 5, _firstName: "foo", _lastName: "bar", _star: true },
+                            { _id: 5, _firstName: "foo2", _lastName: "bar2", _star: false }];
+
+        mockRepository.setup(x => x.loadAllContacts()).returns(() => someContacts);
+
+        chai.expect(subject.loadAllContacts()).to.deep.eq(someContacts);
       });
     });
 });
