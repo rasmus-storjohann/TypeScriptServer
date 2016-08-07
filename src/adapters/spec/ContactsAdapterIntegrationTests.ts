@@ -16,7 +16,6 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
   var aContact = { _id: 3, _firstName: "Bob", _lastName: "Smith", _star: true };
   var someContacts = [aContact, { _id: 5, _firstName: "Jenny", _lastName: "Baker", _star: false }];
 
-
   beforeEach(() => {
     mockService = typeMoq.Mock.ofType(MockContactService);
     subject = new ContactsExpressAdapter(mockService.object);
@@ -36,6 +35,13 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
                          .expect("Content-Length", "128")
                          .expect(200, done);
     });
+
+    it ("should call service", (done) => {
+      mockService.setup(x => x.loadAllContacts()).returns(() => someContacts);
+      request(expressApp).get("/contacts");
+      //mockService.verify(x => x.loadAllContacts(), typeMoq.Times.once());
+      done();
+    });
   });
 
   describe("get contact by id", () => {
@@ -51,7 +57,6 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
                             }
                             done();
                           });
-       //mockService.verify(x => x.loadContact(12), typeMoq.Times.once());
     });
 
     it ("should call service with id", (done) => {
@@ -59,6 +64,20 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
       request(expressApp).get("/contact/23");
       //mockService.verify(x => x.loadContact(23), typeMoq.Times.once());
       done();
+    });
+  });
+
+  describe("post new contact", () => {
+    it("should return", (done) => {
+      mockService.setup(x => x.saveContact({ _id: 3, _firstName: "", _lastName: "", _star: false})).returns(() => true);
+      request(expressApp).post("/contact")
+                         .send(aContact)
+                         .set("Accept", "application/json")
+                         .end(function(err, res){
+                           if (err) {
+                             return done(err);
+                           }
+                         });
     });
   });
 });
