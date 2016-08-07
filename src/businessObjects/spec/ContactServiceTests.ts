@@ -11,7 +11,7 @@ describe("ContactService", () => {
     var subject: ContactService;
     var mockRepository: typeMoq.Mock<MockContactRepository>;
 
-    beforeEach(function () {
+    beforeEach(() => {
       mockRepository = typeMoq.Mock.ofType(MockContactRepository);
       subject = new ContactService(mockRepository.object);
     });
