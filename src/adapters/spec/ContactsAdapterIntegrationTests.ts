@@ -8,11 +8,12 @@ import { ContactsExpressAdapter } from "../ContactsExpressAdapter";
 import { Contact } from "../../businessInterfaces/Contact";
 import { MockContactService } from "./MockContactService";
 
-describe("ContactsExpressAdapter integration tests", () => {
+describe("ContactsExpressAdapterIntegrationTests", () => {
   var subject : ContactsExpressAdapter;
   var mockService: typeMoq.Mock<MockContactService>;
   var expressApp;
 
+  var aContact = { _id: 3, _firstName: "FirstName", _lastName: "LastName", _star: true };
   var someContacts = [{ _id: 3, _firstName: "FirstName", _lastName: "LastName", _star: true },
                       { _id: 5, _firstName: "FirstName2", _lastName: "LastName2", _star: false }];
 
@@ -27,15 +28,32 @@ describe("ContactsExpressAdapter integration tests", () => {
 
   describe("get contacts list", () => {
 
-    mockService.setup(x => x.loadAllContacts()).returns(() => someContacts);
-
     it("should return contacts", (done) => {
 
+      mockService.setup(x => x.loadAllContacts()).returns(() => someContacts);
       request(expressApp).get("/contacts")
                          .expect(/\"_firstName\"\:\"FirstName\"/)
                          .expect("Content-Type", /json/)
                          .expect("Content-Length", "146")
                          .expect(200, done);
+    });
+  });
+
+  describe("get contact by id", () => {
+    it ("should return contact with given id", (done) => {
+      mockService.setup(x => x.loadContact(12)).returns(() => aContact);
+
+      request(expressApp).get("/contact/12")
+                         .expect(/\"_firstName\"\:\"FirstName\"/)
+                         .expect("Content-Type", /json/)
+                         .expect("Content-Length", "70")
+                         .expect(200, done);
+    });
+
+    it ("should call service with id", () => {
+      mockService.setup(x => x.loadContact(12)).returns(() => aContact);
+      request(expressApp).get("/contact/12");
+      mockService.verify(x => x.loadContact(12), typeMoq.Times.once());
     });
   });
 });
