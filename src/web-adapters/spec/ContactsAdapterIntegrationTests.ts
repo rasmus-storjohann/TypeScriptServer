@@ -20,7 +20,6 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
     subject = new ContactsExpressAdapter(mockService.object);
     expressApp = express();
     expressApp.use("/", subject.Router());
-
   });
 
   describe("get contacts list", () => {

@@ -2,30 +2,10 @@
 
 import { Contact } from "./Contact";
 
-interface IContactSaveFunction {
-  (contact: Contact) : Contact;
-}
-
-interface IContactUpdateFunction {
-  (id: number, contact: Contact): Contact;
-}
-
-interface IContactLoadFunction {
-  (id: number) : Contact;
-}
-
-interface IContactLoadAllFunction {
-  () : Contact[];
-}
-
-interface IContactDeleteFunction {
-  (id: number) : void;
-}
-
 export interface IContactService {
-  saveContact: IContactSaveFunction;
-  loadContact: IContactLoadFunction;
-  loadAllContacts: IContactLoadAllFunction;
-  updateContact: IContactUpdateFunction;
-  deleteContact: IContactDeleteFunction;
+  saveContact: (contact: Contact) => Contact;
+  loadContact: (id: number) => Contact;
+  loadAllContacts: () => Contact[];
+  updateContact: (id: number, contact: Contact) => Contact;
+  deleteContact: (id: number) => void;
 }
