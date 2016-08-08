@@ -6,16 +6,20 @@ import * as chai from "chai";
 import { ContactService } from "../ContactService";
 import { Contact } from "../../businessInterfaces/Contact";
 import { MockContactRepository } from "./MockContactRepository";
+import { ContactBuilder } from "../../businessInterfaces/test-helpers/ContactBuilder";
 
 describe("ContactService", () => {
     var subject: ContactService;
     var mockRepository: typeMoq.Mock<MockContactRepository>;
-    var aContact = { _id: 5, _firstName: "foo", _lastName: "bar", _star: true };
-    var someContacts = [aContact, { _id: 5, _firstName: "foo2", _lastName: "bar2", _star: false }];
+    var aContact : Contact;
+    var someContacts : Contact[];
 
     beforeEach(() => {
       mockRepository = typeMoq.Mock.ofType(MockContactRepository);
       subject = new ContactService(mockRepository.object);
+      var builder = new ContactBuilder();
+      aContact = builder.build();
+      someContacts = builder.buildMany();
     });
 
     describe("#loadAllContacts", () => {

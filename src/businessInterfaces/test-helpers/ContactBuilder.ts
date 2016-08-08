@@ -8,7 +8,11 @@ export class ContactBuilder {
   private firstName: string;
   private lastName: string;
   private star: boolean;
+
   constructor() {
+    this.randomize();
+  }
+  private randomize() {
     this.id = Math.random();
     this.firstName = randomatic(10);
     this.lastName = randomatic(10);
@@ -31,6 +35,11 @@ export class ContactBuilder {
     return this;
   }
   public build() {
-    return new Contact(this.id, this.firstName, this.lastName, this.star);
+    var value = new Contact(this.id, this.firstName, this.lastName, this.star);
+    this.randomize();
+    return value;
+  }
+  public buildMany() {
+    return [this.build(), this.build(), this.build()];
   }
 }

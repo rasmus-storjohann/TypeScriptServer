@@ -30,4 +30,12 @@ describe("ContactBuilder test helper", () => {
   it("should support setting the 'star' property", () => {
     chai.expect(subject.withStar(false).build()._star).to.equal(false);
   });
+  it("shoud rerandomize values after build is called", () => {
+    var firstContact = subject.build();
+    var secondContact = subject.build();
+    chai.expect(firstContact._firstName).to.not.equal(secondContact._firstName);
+  });
+  it("should build many", () => {
+    chai.expect(subject.buildMany()).to.have.lengthOf(3);
+  });
 });
