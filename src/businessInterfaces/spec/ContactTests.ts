@@ -1,27 +1,44 @@
 "use strict";
 
 import * as chai from "chai";
+var randomatic = require("randomatic");
 import { Contact } from "../Contact";
 import { ValidationError } from "../ValidationError";
 
-// TODO use fixture throughout, that's why the withFoo() functions are there
 describe("Contact", () => {
+  var firstName : string;
+  var lastName : string;
+  var id : number;
+  var star: boolean;
+
+  beforeEach(() => {
+    firstName = randomatic(10);
+    lastName = randomatic(10);
+    id = Math.floor(1000 * Math.random());
+    star = Math.random() < 0.5;
+  });
+
   it("should throw on empty first name", () => {
     chai.expect(() => {
-      new Contact(1, "", "valid last name", false);
+      new Contact(id, "", lastName, star);
     }).to.throw(ValidationError);
   });
 
   it("should throw on empty last name", () => {
     chai.expect(() => {
-      new Contact(1, "valid first name", "", false);
+      new Contact(id, firstName, "", star);
     }).to.throw(ValidationError);
   });
 
-  // TODO add test for negative id
   it("should throw on non-integer id", () => {
     chai.expect(() => {
-      new Contact(1.5, "valid first name", "valid last name", false);
+      new Contact(1.5, firstName, lastName, star);
+    }).to.throw(ValidationError);
+  });
+
+  it("should throw on negative id", () => {
+    chai.expect(() => {
+      new Contact(-1, firstName, lastName, star);
     }).to.throw(ValidationError);
   });
 });
