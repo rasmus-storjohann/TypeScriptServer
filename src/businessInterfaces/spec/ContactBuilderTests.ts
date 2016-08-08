@@ -2,12 +2,12 @@
 
 import * as typeMoq from "typemoq";
 import * as chai from "chai";
-import { ContactBuilder } from "../test-helpers/ContactBuilder";
+import { ContactFixture } from "../test-helpers/ContactFixture";
 
-describe("ContactBuilder test helper", () => {
-  var subject : ContactBuilder;
+describe("ContactFixture test helper", () => {
+  var subject : ContactFixture;
   beforeEach(() => {
-    subject = new ContactBuilder();
+    subject = new ContactFixture();
   });
   it ("should have a non-empty first name", () => {
     chai.expect(subject.build()._firstName).to.have.lengthOf(10);

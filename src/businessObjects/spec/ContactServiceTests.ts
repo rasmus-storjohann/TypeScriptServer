@@ -6,7 +6,7 @@ import * as chai from "chai";
 import { ContactService } from "../ContactService";
 import { Contact } from "../../businessInterfaces/Contact";
 import { MockContactRepository } from "./MockContactRepository";
-import { ContactBuilder } from "../../businessInterfaces/test-helpers/ContactBuilder";
+import { ContactFixture } from "../../businessInterfaces/test-helpers/ContactFixture";
 
 describe("ContactService", () => {
     var subject: ContactService;
@@ -17,7 +17,7 @@ describe("ContactService", () => {
     beforeEach(() => {
       mockRepository = typeMoq.Mock.ofType(MockContactRepository);
       subject = new ContactService(mockRepository.object);
-      var builder = new ContactBuilder();
+      var builder = new ContactFixture();
       aContact = builder.build();
       someContacts = builder.buildMany();
     });

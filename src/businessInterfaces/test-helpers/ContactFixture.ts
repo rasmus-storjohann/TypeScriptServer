@@ -3,7 +3,7 @@
 import { Contact } from "../../businessInterfaces/Contact";
 var randomatic = require("randomatic");
 
-export class ContactBuilder {
+export class ContactFixture {
   private id: number;
   private firstName: string;
   private lastName: string;

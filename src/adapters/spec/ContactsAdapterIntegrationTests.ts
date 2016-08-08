@@ -7,13 +7,13 @@ import * as express from "express";
 import { ContactsExpressAdapter } from "../ContactsExpressAdapter";
 import { Contact } from "../../businessInterfaces/Contact";
 import { MockContactService } from "./MockContactService";
-import { ContactBuilder } from "../../businessInterfaces/test-helpers/ContactBuilder";
+import { ContactFixture } from "../../businessInterfaces/test-helpers/ContactFixture";
 
 describe("ContactsExpressAdapterIntegrationTests", () => {
   var subject : ContactsExpressAdapter;
   var mockService: typeMoq.Mock<MockContactService>;
   var expressApp;
-  var contactFixture = new ContactBuilder();
+  var contactFixture = new ContactFixture();
 
   beforeEach(() => {
     mockService = typeMoq.Mock.ofType(MockContactService);
