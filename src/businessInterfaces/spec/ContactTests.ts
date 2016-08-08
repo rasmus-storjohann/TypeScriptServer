@@ -5,9 +5,15 @@ import { Contact } from "../Contact";
 import { ValidationError } from "../ValidationError";
 
 describe("Contact", () => {
-  describe("validation", () => {
-    it("should validate non-empty first name", () => {
-      chai.expect(new Contact(1, "", "non-empty", false)).to.throw(ValidationError);
-    });
+  it("should throw on empty first name", () => {
+    chai.expect(() => {
+      new Contact(1, "", "valid last name", false);
+    }).to.throw(ValidationError);
+  });
+
+  it("should throw on empty last name", () => {
+    chai.expect(() => {
+      new Contact(1, "valid first name", "", false);
+    }).to.throw(ValidationError);
   });
 });

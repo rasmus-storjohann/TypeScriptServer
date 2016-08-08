@@ -1,5 +1,18 @@
 "use strict";
 
+import { ValidationError } from "./ValidationError";
+
+class ContactValidator {
+  public static validate(contact: Contact) {
+    if (contact._firstName === "") {
+      throw new ValidationError("Empty first name");
+    }
+    if (contact._lastName === "") {
+      throw new ValidationError("Empty last name");
+    }
+  }
+}
+
 export class Contact {
 
   _id: number;
@@ -12,5 +25,7 @@ export class Contact {
     this._firstName = firstName;
     this._lastName = lastName;
     this._star = star;
+
+    ContactValidator.validate(this);
   }
 }

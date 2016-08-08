@@ -75,7 +75,7 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
   describe("post new contact", () => {
     it("should return", (done) => {
       var aContact = contactFixture.build();
-      mockService.setup(x => x.saveContact({ _id: 3, _firstName: "", _lastName: "", _star: false})).returns(() => true);
+      mockService.setup(x => x.saveContact({ _id: 3, _firstName: "first", _lastName: "last", _star: false})).returns(() => true);
       request(expressApp).post("/contact")
                          .send(aContact)
                          .set("Accept", "application/json")

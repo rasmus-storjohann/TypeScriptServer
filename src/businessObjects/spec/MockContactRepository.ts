@@ -5,7 +5,7 @@ import { Contact } from "../../businessInterfaces/Contact";
 
 export class MockContactRepository implements IContactRepository {
 
-  private _contact = new Contact(0, "", "", false);
+  private _contact = new Contact(0, "first", "last", false);
 
   saveContact(contact: Contact) {
     return true;
