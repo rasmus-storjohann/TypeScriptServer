@@ -1,6 +1,5 @@
 "use strict";
 
-import * as typeMoq from "typemoq";
 import * as chai from "chai";
 import { ContactFixture } from "../test-helpers/ContactFixture";
 
