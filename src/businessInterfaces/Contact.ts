@@ -10,6 +10,9 @@ class ContactValidator {
     if (contact._lastName === "") {
       throw new ValidationError("Empty last name");
     }
+    if (contact._id % 1 !== 0) {
+      throw new ValidationError("Non-integer id: " + contact._id);
+    }
   }
 }
 

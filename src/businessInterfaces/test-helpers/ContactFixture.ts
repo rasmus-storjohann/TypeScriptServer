@@ -13,7 +13,7 @@ export class ContactFixture {
     this.randomize();
   }
   private randomize() {
-    this.id = Math.random();
+    this.id = Math.floor(1000 * Math.random());
     this.firstName = randomatic(10);
     this.lastName = randomatic(10);
     this.star = Math.random() < 0.5;

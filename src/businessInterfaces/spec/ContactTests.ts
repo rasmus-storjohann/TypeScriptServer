@@ -16,4 +16,10 @@ describe("Contact", () => {
       new Contact(1, "valid first name", "", false);
     }).to.throw(ValidationError);
   });
+
+  it("should throw on non-integer id", () => {
+    chai.expect(() => {
+      new Contact(1.5, "valid first name", "valid last name", false);
+    }).to.throw(ValidationError);
+  });
 });
