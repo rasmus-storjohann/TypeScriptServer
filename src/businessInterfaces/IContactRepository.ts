@@ -3,11 +3,11 @@
 import { Contact } from "./Contact";
 
 interface IContactSaveFunction {
-  (contact: Contact) : boolean;
+  (contact: Contact) : Contact;
 }
 
 interface IContactUpdateFunction {
-  (id: number, contact: Contact): boolean;
+  (id: number, contact: Contact): Contact;
 }
 
 interface IContactLoadFunction {
@@ -19,7 +19,7 @@ interface IContactLoadAllFunction {
 }
 
 interface IContactDeleteFunction {
-  (id: number) : boolean;
+  (id: number) : void;
 }
 
 export interface IContactRepository {

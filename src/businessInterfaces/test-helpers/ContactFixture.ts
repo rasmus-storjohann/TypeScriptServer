@@ -34,10 +34,19 @@ export class ContactFixture {
     this.star = star;
     return this;
   }
+  // TOOD rename to buildContact()
   public build() {
     var value = new Contact(this.id, this.firstName, this.lastName, this.star);
     this.randomize();
     return value;
+  }
+  public buildObject() {
+    return {
+      _id: this.id,
+      _firstName: this.firstName,
+      _lastName: this.lastName,
+      _star: this.star
+    };
   }
   public buildMany() {
     return [this.build(), this.build(), this.build()];

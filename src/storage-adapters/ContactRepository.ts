@@ -18,12 +18,12 @@ export class ContactRepository implements IContactRepository {
                   contact._star);
 
     this._contact[contact._id] = contact;
-    return true;
+    return contact;
   }
 
   updateContact(id: number, contact: Contact) {
     this._contact[id] = contact;
-    return true;
+    return contact;
   }
 
   loadAllContacts() {
@@ -36,6 +36,5 @@ export class ContactRepository implements IContactRepository {
 
   deleteContact(id: number) {
     delete this._contact[id];
-    return true;
   }
 }

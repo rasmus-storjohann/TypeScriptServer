@@ -8,11 +8,11 @@ export class MockContactService implements IContactService {
   private _contact = new Contact(0, "first", "last", false);
 
   saveContact(contact: Contact) {
-    return true;
+    return contact;
   }
 
   updateContact(id: number, contact: Contact) {
-    return true;
+    return contact;
   }
 
   deleteContact(id: number) {

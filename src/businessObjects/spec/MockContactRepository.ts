@@ -8,15 +8,15 @@ export class MockContactRepository implements IContactRepository {
   private _contact = new Contact(0, "first", "last", false);
 
   saveContact(contact: Contact) {
-    return true;
+    return contact;
   }
 
   updateContact(id: number, contact: Contact) {
-    return true;
+    return contact;
   }
 
   deleteContact(id: number) {
-    return true;
+    delete this._contact[id];
   }
 
   loadAllContacts() {

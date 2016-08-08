@@ -25,6 +25,14 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
 
   describe("get contacts list", () => {
 
+    it ("should call service", (done) => {
+      var someContacts = contactFixture.buildMany();
+      mockService.setup(x => x.loadAllContacts()).returns(() => someContacts);
+      request(expressApp).get("/contacts");
+      //mockService.verify(x => x.loadAllContacts(), typeMoq.Times.once());
+      done();
+    });
+
     it("should return contacts", (done) => {
 
       var bobAndJenny = [contactFixture.withFirstName("Bob").build(),
@@ -36,14 +44,6 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
                          .expect(/\"_firstName\"\:\"Jenny\"/)
                          .expect("Content-Type", /json/)
                          .expect(200, done);
-    });
-
-    it ("should call service", (done) => {
-      var someContacts = contactFixture.buildMany();
-      mockService.setup(x => x.loadAllContacts()).returns(() => someContacts);
-      request(expressApp).get("/contacts");
-      //mockService.verify(x => x.loadAllContacts(), typeMoq.Times.once());
-      done();
     });
   });
 
@@ -75,7 +75,7 @@ describe("ContactsExpressAdapterIntegrationTests", () => {
   describe("post new contact", () => {
     it("should return", (done) => {
       var aContact = contactFixture.build();
-      mockService.setup(x => x.saveContact({ _id: 3, _firstName: "first", _lastName: "last", _star: false})).returns(() => true);
+      mockService.setup(x => x.saveContact({ _id: 3, _firstName: "first", _lastName: "last", _star: false})).returns(() => aContact);
       request(expressApp).post("/contact")
                          .send(aContact)
                          .set("Accept", "application/json")

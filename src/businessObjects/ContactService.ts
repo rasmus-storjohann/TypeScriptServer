@@ -28,6 +28,6 @@ export class ContactService implements IContactService {
   }
 
   deleteContact(id: number) {
-    return this._repository.deleteContact(id);
+    this._repository.deleteContact(id);
   }
 }
