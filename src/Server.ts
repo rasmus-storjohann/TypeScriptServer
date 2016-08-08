@@ -2,8 +2,8 @@
 
 "use strict";
 
-import * as expressAdapter from "./adapters/ContactsExpressAdapter";
-import * as contactRepository from "./adapters/ContactRepository";
+import * as expressAdapter from "./web-adapters/ContactsExpressAdapter";
+import * as contactRepository from "./storage-adapters/ContactRepository";
 import * as contactService from "./businessObjects/ContactService";
 
 import * as express from "express";
