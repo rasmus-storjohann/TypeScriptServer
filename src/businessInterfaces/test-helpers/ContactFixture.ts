@@ -34,7 +34,6 @@ export class ContactFixture {
     this.star = star;
     return this;
   }
-  // TOOD rename to buildContact()
   public build() {
     var value = new Contact(this.id, this.firstName, this.lastName, this.star);
     this.randomize();
