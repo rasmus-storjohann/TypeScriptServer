@@ -6,3 +6,5 @@ app.js
 src/**/*.js
 .tscache
 js/**/*.js
+typings/
+
