@@ -3,24 +3,24 @@
 import * as typeMoq from "typemoq";
 import * as chai from "chai";
 var request = require("supertest");
-import * as express from "express";
+var feathers = require("feathers");
 
-import { ContactsExpressAdapter } from "../ContactsExpressAdapter";
+import { ContactsFeathersAdapter } from "../ContactsFeathersAdapter";
 import { Contact } from "../../businessInterfaces/Contact";
 import { MockContactService } from "./MockContactService";
 import { ContactFixture } from "../../businessInterfaces/test-helpers/ContactFixture";
 
 describe("ContactsWebAdapterIntegrationTests", () => {
-  var subject : ContactsExpressAdapter;
+  var subject : ContactsFeathersAdapter;
   var mockService: typeMoq.Mock<MockContactService>;
   var contactFixture = new ContactFixture();
-  var expressApp;
+  var feathersApp;
 
   beforeEach(() => {
     mockService = typeMoq.Mock.ofType(MockContactService);
-    subject = new ContactsExpressAdapter(mockService.object);
-    expressApp = express();
-    expressApp.use("/", subject.Router());
+    subject = new ContactsFeathersAdapter(mockService.object);
+    feathersApp = feathers();
+    feathersApp.use("/", subject.Router());
   });
 
   describe("GET all", () => {
@@ -30,7 +30,7 @@ describe("ContactsWebAdapterIntegrationTests", () => {
       var severalContacts = contactFixture.buildMany();
 
       mockService.setup(x => x.loadAllContacts()).returns(() => severalContacts);
-      request(expressApp).get("/contacts")
+      request(feathersApp).get("/contacts")
                          .expect("Content-Type", /json/)
                          .expect(200)
                          .end(function(err, res) {
@@ -61,7 +61,7 @@ describe("ContactsWebAdapterIntegrationTests", () => {
       var id = bob._id;
 
       mockService.setup(x => x.loadContact(id)).returns(() => bob);
-      request(expressApp).get("/contact/" + id)
+      request(feathersApp).get("/contact/" + id)
                          .expect(/\"_firstName\"\:\"Bob\"/)
                          .expect("Content-Type", /json/)
                          .expect(200)
@@ -75,7 +75,7 @@ describe("ContactsWebAdapterIntegrationTests", () => {
     it("should return 404 when service throws NoSuchModel", (done) => {
       var id = 5;
       //mockService.setup(x => x.loadContact(id)).returns(() : Contact => { throw Error(""); });
-      request(expressApp).get("/contact/" + id)
+      request(feathersApp).get("/contact/" + id)
                          .expect(404)
                          .end(function(err, res) {
                            var errorBody = err.body;
@@ -88,7 +88,7 @@ describe("ContactsWebAdapterIntegrationTests", () => {
     it("should return contact from service", (done) => {
       var aContact = contactFixture.build();
       mockService.setup(x => x.saveContact(aContact)).returns(() => aContact);
-      request(expressApp).post("/contact")
+      request(feathersApp).post("/contact")
                          .send(aContact)
                          .set("Accept", "application/json")
                          .expect(200, done);
@@ -101,7 +101,7 @@ describe("ContactsWebAdapterIntegrationTests", () => {
       var aContact = contactFixture.build();
       var id = aContact._id;
       mockService.setup(x => x.updateContact(id, aContact)).returns(() => aContact);
-      request(expressApp).post("/contact/" + id)
+      request(feathersApp).post("/contact/" + id)
                          .send(
                            {
                              _id: 3,

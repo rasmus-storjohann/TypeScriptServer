@@ -3,10 +3,10 @@
 "use strict";
 
 import { IContactService } from "../businessInterfaces/IContactService";
-import * as express from "express";
+var feathers = require("feathers");
 import * as bodyParser from "body-parser";
 
-export class ContactsExpressAdapter {
+export class ContactsFeathersAdapter {
   private _contactService: IContactService;
 
   constructor(contactService: IContactService) {
@@ -16,7 +16,7 @@ export class ContactsExpressAdapter {
   public Router() {
     var service = this._contactService;
 
-    var router = express.Router();
+    var router = feathers.Router();
     router.use(bodyParser.json());
     router
     .get("/contact/:id", function(req, res) {

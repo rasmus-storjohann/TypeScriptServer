@@ -2,30 +2,30 @@
 
 "use strict";
 
-import * as expressAdapter from "./web-adapters/ContactsExpressAdapter";
+import * as feathersWebAdapter from "./web-adapters/ContactsFeathersAdapter";
 import * as contactRepository from "./storage-adapters/ContactRepository";
 import * as contactService from "./businessObjects/ContactService";
 
-import * as express from "express";
+var feathers = require("feathers");
 import * as path from "path";
 
 export class Server {
-  private _application: express.Application;
+  private _application = feathers();
   private _port: number;
 
-  private _expressAdapter: expressAdapter.ContactsExpressAdapter;
+  private _feathersAdapter: feathersWebAdapter.ContactsFeathersAdapter;
   private _contactRepository: contactRepository.ContactRepository;
   private _contactService: contactService.ContactService;
 
   constructor() {
     this._contactRepository = new contactRepository.ContactRepository;
     this._contactService = new contactService.ContactService(this._contactRepository);
-    this._expressAdapter = new expressAdapter.ContactsExpressAdapter(this._contactService);
+    this._feathersAdapter = new feathersWebAdapter.ContactsFeathersAdapter(this._contactService);
 
     this._port = 3000;
-    this._application = express();
+    this._application = feathers();
 
-    var aboutRouter = express.Router();
+    var aboutRouter = feathers.Router();
 
     aboutRouter.get("/about", function(req, res) {
       console.log("Sending about!");
@@ -33,7 +33,7 @@ export class Server {
     });
 
     this._application.use("/", aboutRouter);
-    this._application.use("/", this._expressAdapter.Router());
+    this._application.use("/", this._feathersAdapter.Router());
   }
 
   public listen() {
