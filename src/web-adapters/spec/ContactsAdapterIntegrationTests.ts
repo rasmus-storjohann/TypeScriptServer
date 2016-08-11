@@ -27,9 +27,9 @@ describe("ContactsWebAdapterIntegrationTests", () => {
 
     it("should return contacts from service", (done) => {
 
-      var someContacts = contactFixture.buildMany();
+      var severalContacts = contactFixture.buildMany();
 
-      mockService.setup(x => x.loadAllContacts()).returns(() => someContacts);
+      mockService.setup(x => x.loadAllContacts()).returns(() => severalContacts);
       request(expressApp).get("/contacts")
                          .expect("Content-Type", /json/)
                          .expect(200)
@@ -45,11 +45,11 @@ describe("ContactsWebAdapterIntegrationTests", () => {
                             */
 
                            var responseBody = res.body;
-                           chai.expect(responseBody).to.have.lengthOf(someContacts.length);
+                           chai.expect(responseBody).to.have.lengthOf(severalContacts.length);
                            // TODO loop here
-                           chai.expect(responseBody[0]._firstName).to.equal(someContacts[0]._firstName);
-                           chai.expect(responseBody[1]._firstName).to.equal(someContacts[1]._firstName);
-                           chai.expect(responseBody[2]._firstName).to.equal(someContacts[2]._firstName);
+                           chai.expect(responseBody[0]._firstName).to.equal(severalContacts[0]._firstName);
+                           chai.expect(responseBody[1]._firstName).to.equal(severalContacts[1]._firstName);
+                           chai.expect(responseBody[2]._firstName).to.equal(severalContacts[2]._firstName);
                            done();
                          });
     });
