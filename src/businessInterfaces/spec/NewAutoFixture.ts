@@ -7,7 +7,7 @@ var randomatic = require("randomatic");
 
 class Autofixture<T extends Object> {
     private options;
-    constructor(options = {}) {
+    constructor(options) {
         this.options = options;
     }
 
@@ -29,40 +29,56 @@ class Autofixture<T extends Object> {
     }
 
     private generate(spec: string) {
-        if (/string\[\d+\]/.test(spec)) {
+        if (/^string.*/.test(spec)) {
             return this.generateString(spec);
         }
-        return undefined;
+        throw new Error("invalid type in autofixture spec");
     }
 
     private generateString(spec: string) {
-        var match = /string\[(\d+)\]/.exec(spec);
+        var match = spec === "string";
         if (match) {
-            var length = parseInt(match[1]);
+            var defaultLength = 32;
+            return randomatic(defaultLength);
+        }
+
+        var matchWithLength = /^string\[(\d+)\]$/.exec(spec);
+        if (matchWithLength) {
+            var length = parseInt(matchWithLength[1]);
             return randomatic(length);
         }
-        return undefined;
+        throw new Error("invalid string autofixture spec");
     }
 };
 
 describe("Autofixture", () => {
 
-    describe("basic configuration:", () => {
+    describe("creating strings", () => {
 
-        it("can specify a string of given length", () => {
-
-            class ClassWithString {
-                public name: string;
-                constructor(name: string) {
-                    this.name = name;
-                }
+        class ClassWithString {
+            public name: string;
+            constructor(name: string) {
+                this.name = name;
             }
+        }
+
+        it("with default length", () => {
+
+            var subject = new Autofixture<ClassWithString>({
+                "name" : "string"
+            });
+            var value = subject.create(new ClassWithString(""));
+            chai.expect(value.name).to.be.a("string");
+            chai.expect(value.name).to.have.length.of.at.least(1);
+        });
+
+        it("with a given length", () => {
 
             var subject = new Autofixture<ClassWithString>({
                 "name" : "string[5]"
             });
             var value = subject.create(new ClassWithString(""));
-            chai.expect(value.name).to.be.a("string").and.to.have.lengthOf(5);
+            chai.expect(value.name).to.be.a("string");
             chai.expect(value.name).to.have.lengthOf(5);
         });
     });
