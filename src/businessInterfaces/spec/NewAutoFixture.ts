@@ -165,7 +165,6 @@ describe("Autofixture", () => {
         chai.expect(value.name).to.be.a("string");
     });
 
-    /*
     it("with partial spec", () => {
         var subject = new Autofixture({
             "value" : "number > 5"
@@ -176,7 +175,6 @@ describe("Autofixture", () => {
         chai.expect(value.name).to.be.a("string");
         chai.expect(value.name).to.have.length.of.at.least(1);
     });
-    */
 
     describe("creating numbers", () => {
 
