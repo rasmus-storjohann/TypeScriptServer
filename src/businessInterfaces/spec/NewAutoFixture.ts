@@ -57,10 +57,11 @@ class Autofixture {
     }
 
     private throwOnIncompatibleSpec(type: string, spec: string) {
+        var booleanOk = type === "boolean" && spec === "boolean";
         var stringOk = type === "string" && /^string/.test(spec);
         var numberOk = type === "number" && /^number/.test(spec);
 
-        if (!stringOk && !numberOk) {
+        if (!booleanOk && !stringOk && !numberOk) {
             throw Error("AutoFixture spec '" + spec + "' not compatible with type '" + type + "'");
         }
     }
@@ -74,6 +75,9 @@ class Autofixture {
     }
 
     private generateFromSpec(spec: string) {
+        if (spec === "boolean") {
+            return this.generateBoolean();
+        }
         if (/^string.*/.test(spec)) {
             return this.generateString(spec);
         }
@@ -81,6 +85,10 @@ class Autofixture {
             return this.generateNumber(spec);
         }
         throw new Error("invalid type in autofixture spec");
+    }
+
+    private generateBoolean() {
+        return this.random() > 0.5;
     }
 
     private generateString(spec: string) {
@@ -124,6 +132,13 @@ class Autofixture {
 
 describe("Autofixture", () => {
 
+    class ClassWithBoolean {
+        public flag: boolean;
+        constructor(flag: boolean) {
+            this.flag = flag;
+        }
+    }
+
     class ClassWithString {
         public name: string;
         constructor(name: string) {
@@ -150,7 +165,6 @@ describe("Autofixture", () => {
     // can set a random number provider
     // can use a function as spec for a field, which is passed in the autofixture
     // exposes static functions for string, number and bool creation
-    // bool support
     // nested object support
     // generate lists of values
     // don't modify argument object
@@ -172,6 +186,16 @@ describe("Autofixture", () => {
         chai.expect(value.value).to.be.at.least(5);
         chai.expect(value.name).to.be.a("string");
         chai.expect(value.name).to.have.length.of.at.least(1);
+    });
+
+    describe("creating booleans", () => {
+        it("with any value", () => {
+            var subject = new Autofixture({
+                "flag" : "boolean"
+            });
+            var value = subject.create(new ClassWithBoolean(true));
+            chai.expect(value.flag).to.be.a("boolean");
+        });
     });
 
     describe("creating numbers", () => {
@@ -274,12 +298,14 @@ describe("Autofixture", () => {
             }).to.throw(Error, /\'number\' not compatible with type \'string\'/);
         });
 
+        /*
         it("invalid specs", () => {
             chai.expect(() => {
                 new Autofixture({
-                    "name" : "string[5"
+                    "name" : "string[5]"
                 });
             }).to.throw(Error);
         });
+        */
     });
 });
