@@ -3,7 +3,6 @@
 // can use a function as spec for a field, which is passed in the autofixture
 // exposes static functions for string, number and bool creation
 // nested object support
-// don't modify argument object
 // objects with arrays as properties, hmmm
 
 "use strict";
@@ -211,42 +210,36 @@ describe("Autofixture", () => {
 
     it("does not modify argument object", () => {
         var subject = new Autofixture();
-
-        var argumentObject = new ClassWithEverything();
-        argumentObject.flag = false;
-        argumentObject.name = "name";
-        argumentObject.value = 1;
+        var argumentObject = new ClassWithString("name");
 
         subject.create(argumentObject);
 
-        chai.expect(argumentObject.flag).to.equal(false);
         chai.expect(argumentObject.name).to.equal("name");
-        chai.expect(argumentObject.value).to.equal(1);
     });
 
     describe("can create many", () => {
-        var value;
+        var values : ClassWithEverything[];
 
         beforeEach(() => {
             var subject = new Autofixture();
-            value = subject.createMany(new ClassWithEverything());
+            values = subject.createMany(new ClassWithEverything());
         });
 
         it("returns an array of several elements", () => {
-            chai.expect(value).to.be.instanceOf(Array);
-            chai.expect(value).to.have.length.above(1);
+            chai.expect(values).to.be.instanceOf(Array);
+            chai.expect(values).to.have.length.above(1);
         });
 
         it("returns an array of the expected type", () => {
-            chai.expect(value[0]).to.be.instanceOf(Object);
-            chai.expect(value[0].flag).to.be.a("boolean");
-            chai.expect(value[0].value).to.be.a("number");
-            chai.expect(value[0].name).to.be.a("string");
+            chai.expect(values[0]).to.be.instanceOf(Object);
+            chai.expect(values[0].flag).to.be.a("boolean");
+            chai.expect(values[0].value).to.be.a("number");
+            chai.expect(values[0].name).to.be.a("string");
         });
 
         it("returns an array of unique values", () => {
-            chai.expect(value[0].value).to.not.equal(value[1].value);
-            chai.expect(value[0].name).to.not.equal(value[1].name);
+            chai.expect(values[0].value).to.not.equal(values[1].value);
+            chai.expect(values[0].name).to.not.equal(values[1].name);
         });
     });
 
