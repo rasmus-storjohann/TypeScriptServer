@@ -32,6 +32,9 @@ class Autofixture<T extends Object> {
         if (/^string.*/.test(spec)) {
             return this.generateString(spec);
         }
+        if (/^number.*/.test(spec)) {
+            return this.generateNumber(spec);
+        }
         throw new Error("invalid type in autofixture spec");
     }
 
@@ -49,9 +52,35 @@ class Autofixture<T extends Object> {
         }
         throw new Error("invalid string autofixture spec");
     }
+
+    private generateNumber(spec: string) {
+        var match = spec === "number";
+        if (match) {
+            return Math.random();
+        }
+        throw new Error("invalid number autofixture spec");
+    }
 };
 
 describe("Autofixture", () => {
+
+    describe("creating numbers", () => {
+
+        class ClassWithNumber {
+            public value: number;
+            constructor(value: number) {
+                this.value = value;
+            }
+        }
+
+        it("with any value", () => {
+            var subject = new Autofixture<ClassWithNumber>({
+                "value" : "number"
+            });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
+        });
+    });
 
     describe("creating strings", () => {
 
@@ -63,7 +92,6 @@ describe("Autofixture", () => {
         }
 
         it("with default length", () => {
-
             var subject = new Autofixture<ClassWithString>({
                 "name" : "string"
             });
