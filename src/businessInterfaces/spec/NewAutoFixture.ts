@@ -67,7 +67,7 @@ class Autofixture {
     }
 
     private isTypeSupported(type: string) {
-        return type === "string" || type === "number";
+        return type === "boolean" || type === "string" || type === "number";
     }
 
     private throwUnsupportedTypeError(type: string) {
@@ -154,9 +154,11 @@ describe("Autofixture", () => {
     }
 
     class ClassWithEverything {
+        public flag: boolean;
         public value: number;
         public name: string;
         constructor() {
+            this.flag = true;
             this.name = "";
             this.value = 1;
         }
@@ -173,6 +175,7 @@ describe("Autofixture", () => {
     it("with implicit spec", () => {
         var subject = new Autofixture();
         var value = subject.create(new ClassWithEverything());
+        chai.expect(value.flag).to.be.a("boolean");
         chai.expect(value.value).to.be.a("number");
         chai.expect(value.name).to.be.a("string");
     });
