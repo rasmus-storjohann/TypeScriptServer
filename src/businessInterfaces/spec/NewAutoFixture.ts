@@ -1,3 +1,11 @@
+// can create integers
+// can set a random number provider
+// can use a function as spec for a field, which is passed in the autofixture
+// exposes static functions for string, number and bool creation
+// nested object support
+// don't modify argument object
+// objects with arrays as properties, hmmm
+
 "use strict";
 
 import * as chai from "chai";
@@ -12,22 +20,32 @@ class Autofixture {
         this.options = options;
     }
 
-    public create<T extends Object>(t: T) : T {
+    public createMany<T extends Object>(t: T, count = 3) : T[] {
+        var results = new Array<T>();
+        for (var i = 0; i < count; i++) {
+            results.push(this.create(t));
+        }
+        return results;
+    }
 
-        this.throwIfOptionsContainsFieldsNotIn(t);
+    public create<T extends Object>(template: T) : T {
 
-        this.iterate(t, (name, value) => {
-            var type = typeof t[name];
+        this.throwIfOptionsContainsFieldsNotIn(template);
+
+        var result = Object.assign({}, template);
+
+        this.iterate(result, (name, value) => {
+            var type = typeof result[name];
 
             if (this.optionsContain(name)) {
-                t[name] = this.generateFromOption(name, type);
+                result[name] = this.generateFromOption(name, type);
             } else if (this.isTypeSupported(type)) {
-                t[name] = this.generateFromSpec(type);
+                result[name] = this.generateFromSpec(type);
             } else {
                 this.throwUnsupportedTypeError(type);
             }
         });
-        return t;
+        return result;
     }
 
     private throwIfOptionsContainsFieldsNotIn<T>(t: T) {
@@ -38,6 +56,7 @@ class Autofixture {
         });
     }
 
+    // Object.keys is better
     private iterate(object, callback) {
         for (var property in object) {
             if (object.hasOwnProperty(property)) {
@@ -84,7 +103,7 @@ class Autofixture {
         if (/^number.*/.test(spec)) {
             return this.generateNumber(spec);
         }
-        throw new Error("invalid type in autofixture spec");
+        throw new Error("invalid type in autofixture spec '" + spec + "'");
     }
 
     private generateBoolean() {
@@ -110,16 +129,23 @@ class Autofixture {
             return this.random();
         }
 
-        var matchWithLowerLimit = /^number\s*\>\s*(\d*\.?\d+)$/.exec(spec);
-        if (matchWithLowerLimit) {
-            var limit = parseFloat(matchWithLowerLimit[1]);
+        var atLeast = /^number\s*\>\s*(\d*\.?\d+)$/.exec(spec);
+        if (atLeast) {
+            var limit = parseFloat(atLeast[1]);
             return limit + this.random();
         }
 
-        var matchWithUpperLimit = /^number\s*\<\s*(\d*\.?\d+)$/.exec(spec);
-        if (matchWithUpperLimit) {
-            var limit = parseFloat(matchWithUpperLimit[1]);
+        var atMost = /^number\s*\<\s*(\d*\.?\d+)$/.exec(spec);
+        if (atMost) {
+            var limit = parseFloat(atMost[1]);
             return limit - 1 + this.random();
+        }
+
+        var inRange = /^number in \<(\d*\.?\d+),(\d*\.?\d+)\>$/.exec(spec);
+        if (inRange) {
+            var min = parseFloat(inRange[1]);
+            var max = parseFloat(inRange[2]);
+            return min + (max - min) * this.random();
         }
 
         throw new Error("invalid number autofixture spec");
@@ -164,15 +190,7 @@ describe("Autofixture", () => {
         }
     };
 
-    // can set a random number provider
-    // can use a function as spec for a field, which is passed in the autofixture
-    // exposes static functions for string, number and bool creation
-    // nested object support
-    // generate lists of values
-    // don't modify argument object
-    // objects with arrays as properties, hmmm
-
-    it("with implicit spec", () => {
+    it("can create from implicit spec", () => {
         var subject = new Autofixture();
         var value = subject.create(new ClassWithEverything());
         chai.expect(value.flag).to.be.a("boolean");
@@ -180,7 +198,7 @@ describe("Autofixture", () => {
         chai.expect(value.name).to.be.a("string");
     });
 
-    it("with partial spec", () => {
+    it("can create from partial spec", () => {
         var subject = new Autofixture({
             "value" : "number > 5"
         });
@@ -189,6 +207,47 @@ describe("Autofixture", () => {
         chai.expect(value.value).to.be.at.least(5);
         chai.expect(value.name).to.be.a("string");
         chai.expect(value.name).to.have.length.of.at.least(1);
+    });
+
+    it("does not modify argument object", () => {
+        var subject = new Autofixture();
+
+        var argumentObject = new ClassWithEverything();
+        argumentObject.flag = false;
+        argumentObject.name = "name";
+        argumentObject.value = 1;
+
+        subject.create(argumentObject);
+
+        chai.expect(argumentObject.flag).to.equal(false);
+        chai.expect(argumentObject.name).to.equal("name");
+        chai.expect(argumentObject.value).to.equal(1);
+    });
+
+    describe("can create many", () => {
+        var value;
+
+        beforeEach(() => {
+            var subject = new Autofixture();
+            value = subject.createMany(new ClassWithEverything());
+        });
+
+        it("returns an array of several elements", () => {
+            chai.expect(value).to.be.instanceOf(Array);
+            chai.expect(value).to.have.length.above(1);
+        });
+
+        it("returns an array of the expected type", () => {
+            chai.expect(value[0]).to.be.instanceOf(Object);
+            chai.expect(value[0].flag).to.be.a("boolean");
+            chai.expect(value[0].value).to.be.a("number");
+            chai.expect(value[0].name).to.be.a("string");
+        });
+
+        it("returns an array of unique values", () => {
+            chai.expect(value[0].value).to.not.equal(value[1].value);
+            chai.expect(value[0].name).to.not.equal(value[1].name);
+        });
     });
 
     describe("creating booleans", () => {
@@ -213,7 +272,7 @@ describe("Autofixture", () => {
 
         it("with a value above a limit", () => {
             var subject = new Autofixture({
-                "value" : "number > 3.2" // TODO test "3" and ".2" too
+                "value" : "number > 3.2"
             });
             var value = subject.create(new ClassWithNumber(0));
             chai.expect(value.value).to.be.a("number");
@@ -222,7 +281,7 @@ describe("Autofixture", () => {
 
         it("with a value below a limit", () => {
             var subject = new Autofixture({
-                "value" : "number < 3.2" // TODO test "3" and ".2" too
+                "value" : "number < 3.2"
             });
             var value = subject.create(new ClassWithNumber(0));
             chai.expect(value.value).to.be.a("number");
@@ -231,8 +290,12 @@ describe("Autofixture", () => {
 
         it("with a value below a limit", () => {
             var subject = new Autofixture({
-                "value" : "number in [1.2, 2.3]" // TODO test "3" and ".2" too
+                "value" : "number in <1.2,2.3>"
             });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
+            chai.expect(value.value).to.be.at.least(1.2);
+            chai.expect(value.value).to.be.at.most(2.3);
         });
 
         it("with an integer", () => {
@@ -255,7 +318,7 @@ describe("Autofixture", () => {
 
         it("with an integer below a limit", () => {
             var subject = new Autofixture({
-                "value" : "integer in [4, 6]"
+                "value" : "integer in <4,6>"
             });
         });
     });
@@ -292,7 +355,7 @@ describe("Autofixture", () => {
             }).to.throw(Error, /field \'mane\' that is not in the type/);
         });
 
-        it("on wrong type", () => {
+        it("on wrong type in spec", () => {
             var subject = new Autofixture({
                 "name" : "number"
             });
@@ -302,6 +365,8 @@ describe("Autofixture", () => {
         });
 
         /*
+        // valid: string [ 5 ], "number in < 5.1 , 6.1 >", "number < 2", "number < .2"
+        // invalid: sting, string[5, string[],
         it("invalid specs", () => {
             chai.expect(() => {
                 new Autofixture({
