@@ -29,7 +29,19 @@ class Autofixture<T extends Object> {
     }
 
     private generate(spec: string) {
-        return randomatic(5);
+        if (/string\[\d+\]/.test(spec)) {
+            return this.generateString(spec);
+        }
+        return undefined;
+    }
+
+    private generateString(spec: string) {
+        var match = /string\[(\d+)\]/.exec(spec);
+        if (match) {
+            var length = parseInt(match[1]);
+            return randomatic(length);
+        }
+        return undefined;
     }
 };
 
@@ -41,15 +53,15 @@ describe("Autofixture", () => {
 
             class ClassWithString {
                 public name: string;
-                constructor() {
-                    this.name = "";
+                constructor(name: string) {
+                    this.name = name;
                 }
             }
 
             var subject = new Autofixture<ClassWithString>({
                 "name" : "string[5]"
             });
-            var value = subject.create(new ClassWithString());
+            var value = subject.create(new ClassWithString(""));
             chai.expect(value.name).to.be.a("string").and.to.have.lengthOf(5);
             chai.expect(value.name).to.have.lengthOf(5);
         });
