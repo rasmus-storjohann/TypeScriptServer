@@ -58,6 +58,11 @@ class Autofixture<T extends Object> {
         if (match) {
             return Math.random();
         }
+        var matchWithLowerLimit = /^number\s*\>\s*(\d*\.?\d+)$/.exec(spec);
+        if (matchWithLowerLimit) {
+            var limit = parseFloat(matchWithLowerLimit[1]);
+            return limit + Math.random();
+        }
         throw new Error("invalid number autofixture spec");
     }
 };
@@ -79,6 +84,15 @@ describe("Autofixture", () => {
             });
             var value = subject.create(new ClassWithNumber(0));
             chai.expect(value.value).to.be.a("number");
+        });
+
+        it("with a value above a limit", () => {
+            var subject = new Autofixture<ClassWithNumber>({
+                "value" : "number > 3.2"
+            });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
+            chai.expect(value.value).to.be.at.least(3.2);
         });
     });
 
