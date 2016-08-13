@@ -13,28 +13,18 @@ class Autofixture {
     }
 
     public create<T extends Object>(t: T) : T {
-        if (this.options) {
-            return this.generateFromOptions<T>(t, this.options);
-        } else {
-            return this.generateFromTemplate<T>(t);
-        }
-    }
-
-    private generateFromOptions<T>(t: T, options) : T {
 
         this.throwIfOptionsContainsFieldsNotIn(t);
 
         this.iterate(t, (name, value) => {
-            if (options.hasOwnProperty(name)) {
-                t[name] = this.generate(options[name]);
+            var type = typeof t[name];
+
+            if (this.optionsContain(name)) {
+                t[name] = this.generateFromOption(name, type);
+            } else if (this.isTypeSupported(type)) {
+                t[name] = this.generateFromSpec(type);
             } else {
-                // clean up duplication
-                var type = typeof t[name];
-                if (type === "string" || type === "number") {
-                    t[name] = this.generate(type);
-                } else {
-                    this.throwUnsupportedTypeError(type);
-                }
+                this.throwUnsupportedTypeError(type);
             }
         });
         return t;
@@ -43,32 +33,11 @@ class Autofixture {
     private throwIfOptionsContainsFieldsNotIn<T>(t: T) {
         this.iterate(this.options, (name, value) => {
             if (!t.hasOwnProperty(name)) {
-                this.throwWrongFieldError(name);
+                throw Error("Autofixture specifies field '" + name + "' that is not in the type");
             }
         });
     }
 
-    private throwWrongFieldError(name: string) {
-        throw Error("Autofixture specifies field '" + name + "' that is not in the type");
-    }
-
-    private generateFromTemplate<T>(t: T) : T {
-        this.iterate(t, (name, value) => {
-            var type = typeof t[name];
-            if (type === "string" || type === "number") {
-                t[name] = this.generate(type);
-            } else {
-                this.throwUnsupportedTypeError(type);
-            }
-        });
-        return t;
-    }
-
-    private throwUnsupportedTypeError(type: string) {
-        throw Error("Autofixture cannot generate values of type '" + name + "'");
-    }
-
-    // todo use a library for this
     private iterate(object, callback) {
         for (var property in object) {
             if (object.hasOwnProperty(property)) {
@@ -77,7 +46,34 @@ class Autofixture {
         }
     }
 
-    private generate(spec: string) {
+    private optionsContain(name: string) {
+        return this.options && this.options.hasOwnProperty(name);
+    }
+
+    private generateFromOption(name: string, type: string) {
+        this.throwOnIncompatibleSpec(type, this.options[name]);
+
+        return this.generateFromSpec(this.options[name]);
+    }
+
+    private throwOnIncompatibleSpec(type: string, spec: string) {
+        var stringOk = type === "string" && /^string/.test(spec);
+        var numberOk = type === "number" && /^number/.test(spec);
+
+        if (!stringOk && !numberOk) {
+            throw Error("AutoFixture spec '" + spec + "' not compatible with type '" + type + "'");
+        }
+    }
+
+    private isTypeSupported(type: string) {
+        return type === "string" || type === "number";
+    }
+
+    private throwUnsupportedTypeError(type: string) {
+        throw Error("Autofixture cannot generate values of type '" + name + "'");
+    }
+
+    private generateFromSpec(spec: string) {
         if (/^string.*/.test(spec)) {
             return this.generateString(spec);
         }
@@ -98,7 +94,7 @@ class Autofixture {
             var length = parseInt(stringWithLength[1]);
             return randomatic(length);
         }
-        throw new Error("invalid string autofixture spec");
+        throw new Error("Invalid string autofixture spec: " + spec);
     }
 
     private generateNumber(spec: string) {
@@ -157,6 +153,8 @@ describe("Autofixture", () => {
     // bool support
     // nested object support
     // generate lists of values
+    // don't modify argument object
+    // objects with arrays as properties, hmmm
 
     it("with implicit spec", () => {
         var subject = new Autofixture();
@@ -258,23 +256,30 @@ describe("Autofixture", () => {
     });
 
     describe("handling errors", () => {
-        it("of non-existent field specified in autofixture", () => {
+        it("of misspelled field", () => {
             var subject = new Autofixture({
-                "wrongName" : "string"
+                "mane" : "string"
             });
             chai.expect(() => {
                 subject.create(new ClassWithString(""));
-            }).to.throw(Error, /wrongName/);
+            }).to.throw(Error, /field \'mane\' that is not in the type/);
         });
 
-        /*
+        it("on wrong type", () => {
+            var subject = new Autofixture({
+                "name" : "number"
+            });
+            chai.expect(() => {
+                subject.create(new ClassWithString(""));
+            }).to.throw(Error, /\'number\' not compatible with type \'string\'/);
+        });
+
         it("invalid specs", () => {
             chai.expect(() => {
                 new Autofixture({
                     "name" : "string[5"
                 });
-            }).to.throw(Error, /invalid string/);
+            }).to.throw(Error);
         });
-        */
     });
 });
