@@ -1,6 +1,6 @@
 // can set a random number provider: https://www.npmjs.com/package/random-seed
 // can use a function as spec for a field, which is passed in the autofixture
-// nested object and array support
+// nested array support
 // objects with arrays as properties, hmmm
 // create arrays of basic types, e.g. integers and strings etc.
 
@@ -59,10 +59,10 @@ export class Autofixture {
         return Math.floor(Autofixture.createNumberBetween(lowerBound, upperBound));
     }
 
-    private options;
+    private optionsXXX;
 
     constructor(options = undefined) {
-        this.options = options;
+        this.optionsXXX = options;
     }
 
     public createMany<T extends Object>(template: T, count = 3) : T[] {
@@ -74,21 +74,29 @@ export class Autofixture {
     }
 
     public create<T extends Object>(template: T) : T {
+        return this.createWithOptions(template, this.optionsXXX);
+    }
 
-        this.throwIfOptionsContainsFieldsNotIn(template); // typo, Contain
+    private createWithOptions<T extends Object>(template: T, options?: Object) : T {
+        this.throwIfOptionsContainsFieldsNotIn(template, options); // typo, Contain
 
         var result = Object.assign({}, template);
 
         this.forEachProperty(result, (name, value) => {
-            var type = typeof result[name];
-            result[name] = this.createProperty(name, type);
+            var type = this.actualTypeOfField(result, name);
+            if (type === "actualObject") { // use TS2.0 to limit the set of values for this field
+                var optionsForNested = options && options[name];
+                result[name] = this.createWithOptions(template[name], optionsForNested);
+            } else {
+                result[name] = this.createSimpleProperty(name, type, options);
+            }
         });
 
         return result;
     }
 
-    private throwIfOptionsContainsFieldsNotIn<T>(template: T) {
-        this.forEachProperty(this.options, (name, value) => {
+    private throwIfOptionsContainsFieldsNotIn<T>(template: T, options?: Object) {
+        this.forEachProperty(options, (name, value) => {
             if (!template.hasOwnProperty(name)) {
                 throw Error("Autofixture specifies field '" + name + "' that is not in the type");
             }
@@ -104,21 +112,29 @@ export class Autofixture {
         }
     }
 
-    private createProperty(name: string, type: string) {
-        if (this.optionsContain(name)) {
-            return this.createFromOptions(name, type);
+    private actualTypeOfField<T extends Object>(t: T, name: string) {
+        var type = typeof t[name];
+        if (type === "object") {
+            return "actualObject";
+        }
+        return type;
+    }
+
+    private createSimpleProperty(name: string, type: string, options?: Object) {
+        if (this.optionsContain(name, options)) {
+            return this.createFromOptions(name, type, options);
         }
 
         this.throwOnUnsupportedType(type);
         return this.createFromSpec(type);
     }
 
-    private optionsContain(name: string) {
-        return this.options && this.options.hasOwnProperty(name);
+    private optionsContain(name: string, options?: Object) {
+        return options && options.hasOwnProperty(name);
     }
 
-    private createFromOptions(name: string, type: string) {
-        var spec = this.options[name];
+    private createFromOptions(name: string, type: string, options: Object) {
+        var spec = options[name];
         this.throwOnIncompatibleSpec(type, spec);
         return this.createFromSpec(spec);
     }
@@ -137,7 +153,7 @@ export class Autofixture {
     }
 
     private throwOnUnsupportedType(type: string) {
-        if (type === "boolean" || type === "string" || type === "number") {
+        if (type === "boolean" || type === "string" || type === "number" || type === "actualObject") {
             return;
         }
         throw Error("Autofixture cannot generate values of type '" + type + "'");
@@ -381,6 +397,15 @@ describe("Autofixture", () => {
         subject.create(argumentObject);
 
         chai.expect(argumentObject.name).to.equal("name");
+    });
+
+    it("can create nested objects", () => {
+        var subject = new Autofixture();
+        var value = subject.create(new ClassWithNestedClass());
+        chai.expect(value.label).to.be.a("string");
+        chai.expect(value.nested.flag).to.be.a("boolean");
+        chai.expect(value.nested.value).to.be.a("number");
+        chai.expect(value.nested.name).to.be.a("string");
     });
 
     describe("creating many", () => {
