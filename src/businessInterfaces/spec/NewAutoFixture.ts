@@ -79,21 +79,25 @@ export class Autofixture {
 
         var result = Object.assign({}, template);
 
-        this.iterate(result, (name, value) => {
+        this.forEachProperty(result, (name, value) => {
             var type = typeof result[name];
-
-            if (this.optionsContain(name)) {
-                result[name] = this.createFromOptions(name, type);
-            } else {
-                this.throwOnUnsupportedTypeError(type);
-                result[name] = this.createFromSpec(type);
-            }
+            result[name] = this.createProperty(name, type);
         });
+
         return result;
     }
 
+    private createProperty(name: string, type: string) {
+        if (this.optionsContain(name)) {
+            return this.createFromOptions(name, type);
+        }
+
+        this.throwOnUnsupportedType(type);
+        return this.createFromSpec(type);
+    }
+
     private throwIfOptionsContainsFieldsNotIn<T>(template: T) {
-        this.iterate(this.options, (name, value) => {
+        this.forEachProperty(this.options, (name, value) => {
             if (!template.hasOwnProperty(name)) {
                 throw Error("Autofixture specifies field '" + name + "' that is not in the type");
             }
@@ -101,7 +105,7 @@ export class Autofixture {
     }
 
     // Object.keys is better
-    private iterate(object, callback) {
+    private forEachProperty(object, callback) {
         for (var property in object) {
             if (object.hasOwnProperty(property)) {
                 callback(property, object[property]);
@@ -121,9 +125,9 @@ export class Autofixture {
 
     private throwOnIncompatibleSpec(type: string, spec: string) {
         var booleanOk = type === "boolean" && spec === "boolean";
-        var stringOk = type === "string" && /^string/.test(spec);
-        var numberOk = type === "number" && /^number/.test(spec);
-        var integerOk = type === "number" && /^integer/.test(spec);
+        var stringOk = type === "string" && /^\s*string/.test(spec);
+        var numberOk = type === "number" && /^\s*number/.test(spec);
+        var integerOk = type === "number" && /^\s*integer/.test(spec);
 
         if (booleanOk || stringOk || numberOk || integerOk) {
             return;
@@ -132,7 +136,7 @@ export class Autofixture {
         throw Error("AutoFixture spec '" + spec + "' not compatible with type '" + type + "'");
     }
 
-    private throwOnUnsupportedTypeError(type: string) {
+    private throwOnUnsupportedType(type: string) {
         if (type === "boolean" || type === "string" || type === "number") {
             return;
         }
@@ -143,32 +147,28 @@ export class Autofixture {
         if (spec === "boolean") {
             return Autofixture.createBoolean();
         }
-        if (/^string/.test(spec)) {
+        if (/^\s*string/.test(spec)) {
             return this.createStringFromSpec(spec);
         }
-        if (/^number/.test(spec) || /^integer/.test(spec)) {
+        if (/^\s*number/.test(spec) || /^\s*integer/.test(spec)) {
             return this.createNumberFromSpec(spec);
         }
         throw new Error("Invalid type in autofixture spec '" + spec + "'");
     }
 
     private createStringFromSpec(spec: string) {
-        var length: number;
-
         if (spec === "string") {
-
             return Autofixture.createString();
-
-        } else {
-            // string followed by length inside []
-            var parsedString = /^string\s*\[\s*(\d+)\s*\]$/.exec(spec);
-            if (parsedString) {
-                length = parseInt(parsedString[1], 10);
-                return Autofixture.createString(length);
-            } else {
-                throw new Error("Invalid string autofixture spec: '" + spec + "'");
-            }
         }
+
+        // string followed by length inside []
+        var parsedString = /^\s*string\s*\[\s*(\d+)\s*\]\s*$/.exec(spec);
+        if (parsedString) {
+            var length = parseInt(parsedString[1], 10);
+            return Autofixture.createString(length);
+        }
+
+        throw new Error("Invalid string autofixture spec: '" + spec + "'");
     }
 
     private createNumberFromSpec(spec: string) {
@@ -176,38 +176,36 @@ export class Autofixture {
         return this.createNumberFromParsedSpec(parsedSpec);
     }
 
-    private parseNumberSpec(spec: string) {
-        var parsedSpec: ParsedSpec;
-        if (spec === "number") {
-            parsedSpec = {
-                isInteger: false
+    private parseNumberSpec(spec: string) : ParsedSpec {
+        if (spec === "number" || spec === "integer") {
+            return {
+                isInteger: spec === "integer"
             };
-        } else if (spec === "integer") {
-            parsedSpec = {
-                isInteger: true
-            };
-        } else {
-            parsedSpec = this.parseAsOnesidedSpec(spec) || this.parseAsTwosidesSpec(spec);
         }
-        if (!parsedSpec) {
-            throw Error("Invalid number autofixture spec: '" + spec + "'");
+
+        var parsedSpec = this.parseAsOnesidedSpec(spec) || this.parseAsTwosidedSpec(spec);
+
+        if (parsedSpec) {
+            return parsedSpec;
         }
-        return parsedSpec;
+
+        throw Error("Invalid number autofixture spec: '" + spec + "'");
     }
 
     private parseAsOnesidedSpec(spec: string) : ParsedSpec {
         // number or integer, followed by < or >, followed by a real value
-        var match = /^(number|integer)\s*(\>|\<)\s*(\d*\.?\d+)$/.exec(spec);
+        var match = /^\s*(number|integer)\s*(\>|\<)\s*(\d*\.?\d+)\s*$/.exec(spec);
         if (!match) {
             return undefined;
         }
 
         var isInteger = match[1] === "integer";
+        var isUpperBound = match[2] === "<";
+        var limit = parseFloat(match[3]);
+
         if (isInteger) {
             this.validateIntegerSpec(match[3]);
         }
-        var isUpperBound = match[2] === "<";
-        var limit = parseFloat(match[3]);
 
         if (isUpperBound) {
             return {
@@ -230,55 +228,53 @@ export class Autofixture {
         }
     }
 
-    private parseAsTwosidesSpec(spec: string) : ParsedSpec {
+    private parseAsTwosidedSpec(spec: string) : ParsedSpec {
         // number or integer, followed by 'in', followed by <a, b> with a and b real values
-        var match = /^(number|integer)\s+in\s*\<\s*(\d*\.?\d+)\s*,\s*(\d*\.?\d+)\s*\>$/.exec(spec);
+        var match = /^\s*(number|integer)\s+in\s*\<\s*(\d*\.?\d+)\s*,\s*(\d*\.?\d+)\s*\>\s*$/.exec(spec);
         if (!match) {
             return undefined;
         }
 
         var isInteger = match[1] === "integer";
+        var lowerBound = parseFloat(match[2]);
+        var upperBound = parseFloat(match[3]);
 
         if (isInteger) {
             this.validateIntegerSpec(match[2]);
             this.validateIntegerSpec(match[3]);
         }
 
-        var lowerLimit = parseFloat(match[2]);
-        var upperLimit = parseFloat(match[3]);
-
         return {
             isInteger: isInteger,
-            lowerBound: lowerLimit,
-            upperBound: upperLimit
+            lowerBound: lowerBound,
+            upperBound: upperBound
         };
     };
 
     private createNumberFromParsedSpec(spec: ParsedSpec) {
-
         if (spec.isInteger) {
             if (spec.lowerBound && spec.upperBound) {
                 return Autofixture.createIntegerBetween(spec.lowerBound, spec.upperBound);
-            } else if (spec.lowerBound) {
+            }
+            if (spec.lowerBound) {
                 return Autofixture.createIntegerAbove(spec.lowerBound);
-            } else if (spec.upperBound) {
+            }
+            if (spec.upperBound) {
                 return Autofixture.createIntegerBelow(spec.upperBound);
-            } else {
-                return Autofixture.createInteger();
             }
-
-        } else {
-
-            if (spec.lowerBound && spec.upperBound) {
-                return Autofixture.createNumberBetween(spec.lowerBound, spec.upperBound);
-            } else if (spec.lowerBound) {
-                return Autofixture.createNumberAbove(spec.lowerBound);
-            } else if (spec.upperBound) {
-                return Autofixture.createNumberBelow(spec.upperBound);
-            } else {
-                return Autofixture.createNumber();
-            }
+            return Autofixture.createInteger();
         }
+
+        if (spec.lowerBound && spec.upperBound) {
+            return Autofixture.createNumberBetween(spec.lowerBound, spec.upperBound);
+        }
+        if (spec.lowerBound) {
+            return Autofixture.createNumberAbove(spec.lowerBound);
+        }
+        if (spec.upperBound) {
+            return Autofixture.createNumberBelow(spec.upperBound);
+        }
+        return Autofixture.createNumber();
     }
 };
 
@@ -484,14 +480,30 @@ describe("Autofixture", () => {
             chai.expect(value.value).to.be.at.most(7);
         });
 
+        it("one sided spec with whitespace in spec", () => {
+            var subject = new Autofixture({
+                "value" : " integer < 8 "
+            });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
+        });
+
         it("with a value in a range", () => {
             var subject = new Autofixture({
-                "value" : "integer in <4,8>"
+                "value" : "integer in <4, 8>"
             });
             var value = subject.create(new ClassWithNumber(0));
             chai.expect(value.value).to.be.a("number");
             chai.expect(value.value % 1).to.equal(0);
             chai.expect(value.value).to.be.within(5, 7);
+        });
+
+        it("two sided range with white space in spec", () => {
+            var subject = new Autofixture({
+                "value" : " integer   in < 4 , 8 >"
+            });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
         });
     });
 
@@ -507,13 +519,19 @@ describe("Autofixture", () => {
         });
 
         it("with a given length", () => {
-
             var subject = new Autofixture({
                 "name" : "string[5]"
             });
             var value = subject.create(new ClassWithString(""));
             chai.expect(value.name).to.be.a("string");
             chai.expect(value.name).to.have.lengthOf(5);
+        });
+
+        it("with white space in spec", () => {
+            var subject = new Autofixture({
+                "name" : " string [ 5 ] "
+            });
+            var value = subject.create(new ClassWithString(""));
         });
     });
 
@@ -555,8 +573,7 @@ describe("Autofixture", () => {
             };
             chai.expect(expectedToThrow).to.throw(Error, expected);
         };
-        // valid: string [ 5 ], "number in < 5.1 , 6.1 >", "number < 2", "number < .2", leading and trailing space
-        // invalid: sting, string[5, string[], integer < 2.3, leading and trailing space
+
         it("on invalid specs", () => {
             expectToThrowOnInvalidStringSpec("string[]", "Invalid string autofixture spec: 'string[]'");
             expectToThrowOnInvalidStringSpec("string[5", "Invalid string autofixture spec: 'string[5'");
