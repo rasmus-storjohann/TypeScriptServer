@@ -350,13 +350,6 @@ describe("Autofixture", () => {
         });
     });
 
-    class ClassWithNumber {
-        public value: number;
-        constructor(value: number) {
-            this.value = value;
-        }
-    }
-
     class SimpleClass {
         public flag: boolean;
         public value: number;
@@ -385,6 +378,14 @@ describe("Autofixture", () => {
         chai.expect(value.value).to.be.at.least(5);
         chai.expect(value.name).to.be.a("string");
         chai.expect(value.name).to.not.be.empty;
+    });
+
+    it("can create with function in spec", () => {
+        var subject = new Autofixture({
+            "value" : () => { return "foo"; }
+        });
+        var value = subject.create(new SimpleClass());
+        chai.expect(value.name).to.equal("foo");
     });
 
     it("does not modify argument object", () => {
@@ -511,6 +512,13 @@ describe("Autofixture", () => {
             chai.expect(value.flag).to.be.a("boolean");
         });
     });
+
+    class ClassWithNumber {
+        public value: number;
+        constructor(value: number) {
+            this.value = value;
+        }
+    }
 
     describe("creating numbers", () => {
 
