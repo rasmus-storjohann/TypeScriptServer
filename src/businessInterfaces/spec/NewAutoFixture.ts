@@ -59,25 +59,26 @@ export class Autofixture {
         return Math.floor(Autofixture.createNumberBetween(lowerBound, upperBound));
     }
 
-    private optionsXXX;
+    private options;
 
     constructor(options = undefined) {
-        this.optionsXXX = options;
+        this.options = options;
+    }
+
+    public create<T extends Object>(template: T) : T {
+        return this.createObject(template, this.options);
     }
 
     public createMany<T extends Object>(template: T, count = 3) : T[] {
         var results = new Array<T>();
         for (var i = 0; i < count; i++) {
-            results.push(this.create(template));
+            results.push(this.createObject(template, this.options));
         }
         return results;
     }
 
-    public create<T extends Object>(template: T) : T {
-        return this.createWithOptions(template, this.optionsXXX);
-    }
+    private createObject<T extends Object>(template: T, options?: Object) : T {
 
-    private createWithOptions<T extends Object>(template: T, options?: Object) : T {
         this.throwIfOptionsContainsFieldsNotIn(template, options); // typo, Contain
 
         var result = Object.assign({}, template);
@@ -85,8 +86,8 @@ export class Autofixture {
         this.forEachProperty(result, (name, value) => {
             var type = this.actualTypeOfField(result, name);
             if (type === "actualObject") { // use TS2.0 to limit the set of values for this field
-                var optionsForNested = options && options[name];
-                result[name] = this.createWithOptions(template[name], optionsForNested);
+                var optionsForObject = options && options[name];
+                result[name] = this.createObject(template[name], optionsForObject);
             } else {
                 result[name] = this.createSimpleProperty(name, type, options);
             }
@@ -371,7 +372,7 @@ describe("Autofixture", () => {
         }
     }
 
-    it("can create from implicit spec", () => {
+    it("can create without spec", () => {
         var subject = new Autofixture();
         var value = subject.create(new ClassWithEverything()); // TODO use fixtures for this
         chai.expect(value.flag).to.be.a("boolean");
@@ -379,7 +380,7 @@ describe("Autofixture", () => {
         chai.expect(value.name).to.be.a("string");
     });
 
-    it("can create from partial spec", () => {
+    it("can create with partial spec", () => {
         var subject = new Autofixture({
             "value" : "number > 5"
         });
@@ -399,13 +400,28 @@ describe("Autofixture", () => {
         chai.expect(argumentObject.name).to.equal("name");
     });
 
-    it("can create nested objects", () => {
-        var subject = new Autofixture();
-        var value = subject.create(new ClassWithNestedClass());
-        chai.expect(value.label).to.be.a("string");
-        chai.expect(value.nested.flag).to.be.a("boolean");
-        chai.expect(value.nested.value).to.be.a("number");
-        chai.expect(value.nested.name).to.be.a("string");
+    describe("can create nested objects", () => {
+
+        it("without spec", () => {
+            var subject = new Autofixture();
+            var value = subject.create(new ClassWithNestedClass());
+            chai.expect(value.label).to.be.a("string");
+            chai.expect(value.nested.flag).to.be.a("boolean");
+            chai.expect(value.nested.value).to.be.a("number");
+            chai.expect(value.nested.name).to.be.a("string");
+        });
+
+        it("with nested spec", () => {
+            var subject = new Autofixture({
+                "nested" : {
+                    "name" : "string[5]"
+                }
+            });
+            var value = subject.create(new ClassWithNestedClass());
+            chai.expect(value.nested.name).to.be.a("string");
+            chai.expect(value.nested.name).to.have.lengthOf(5);
+        });
+
     });
 
     describe("creating many", () => {
