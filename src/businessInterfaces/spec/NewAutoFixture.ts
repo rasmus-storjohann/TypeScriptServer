@@ -1,8 +1,8 @@
-// can set a random number provider
+// can set a random number provider: https://www.npmjs.com/package/random-seed
 // can use a function as spec for a field, which is passed in the autofixture
-// nested object support
+// nested object and array support
 // objects with arrays as properties, hmmm
-// create many integers and strings etc.
+// create arrays of basic types, e.g. integers and strings etc.
 
 "use strict";
 
@@ -75,7 +75,7 @@ export class Autofixture {
 
     public create<T extends Object>(template: T) : T {
 
-        this.throwIfOptionsContainsFieldsNotIn(template);
+        this.throwIfOptionsContainsFieldsNotIn(template); // typo, Contain
 
         var result = Object.assign({}, template);
 
@@ -87,6 +87,23 @@ export class Autofixture {
         return result;
     }
 
+    private throwIfOptionsContainsFieldsNotIn<T>(template: T) {
+        this.forEachProperty(this.options, (name, value) => {
+            if (!template.hasOwnProperty(name)) {
+                throw Error("Autofixture specifies field '" + name + "' that is not in the type");
+            }
+        });
+    }
+
+    // Object.keys is better, don't pass in value
+    private forEachProperty(object, callback) {
+        for (var property in object) {
+            if (object.hasOwnProperty(property)) {
+                callback(property, object[property]);
+            }
+        }
+    }
+
     private createProperty(name: string, type: string) {
         if (this.optionsContain(name)) {
             return this.createFromOptions(name, type);
@@ -96,31 +113,14 @@ export class Autofixture {
         return this.createFromSpec(type);
     }
 
-    private throwIfOptionsContainsFieldsNotIn<T>(template: T) {
-        this.forEachProperty(this.options, (name, value) => {
-            if (!template.hasOwnProperty(name)) {
-                throw Error("Autofixture specifies field '" + name + "' that is not in the type");
-            }
-        });
-    }
-
-    // Object.keys is better
-    private forEachProperty(object, callback) {
-        for (var property in object) {
-            if (object.hasOwnProperty(property)) {
-                callback(property, object[property]);
-            }
-        }
-    }
-
     private optionsContain(name: string) {
         return this.options && this.options.hasOwnProperty(name);
     }
 
     private createFromOptions(name: string, type: string) {
-        this.throwOnIncompatibleSpec(type, this.options[name]);
-
-        return this.createFromSpec(this.options[name]);
+        var spec = this.options[name];
+        this.throwOnIncompatibleSpec(type, spec);
+        return this.createFromSpec(spec);
     }
 
     private throwOnIncompatibleSpec(type: string, spec: string) {
@@ -244,7 +244,7 @@ export class Autofixture {
             this.validateIntegerSpec(match[3]);
         }
 
-        return {
+        return { // return a closure here, then the next function is not needed
             isInteger: isInteger,
             lowerBound: lowerBound,
             upperBound: upperBound
@@ -346,9 +346,18 @@ describe("Autofixture", () => {
         }
     };
 
+    class ClassWithNestedClass {
+        public label: string;
+        public nested: ClassWithEverything;
+        constructor() {
+            this.label = "";
+            this.nested = new ClassWithEverything;
+        }
+    }
+
     it("can create from implicit spec", () => {
         var subject = new Autofixture();
-        var value = subject.create(new ClassWithEverything());
+        var value = subject.create(new ClassWithEverything()); // TODO use fixtures for this
         chai.expect(value.flag).to.be.a("boolean");
         chai.expect(value.value).to.be.a("number");
         chai.expect(value.name).to.be.a("string");
@@ -384,7 +393,7 @@ describe("Autofixture", () => {
 
         it("returns an array of several elements", () => {
             chai.expect(values).to.be.instanceOf(Array);
-            chai.expect(values).to.not.be.empty;
+            chai.expect(values).to.not.be.empty; // should technically be more than one
         });
 
         it("returns an array of the expected type", () => {
@@ -547,7 +556,7 @@ describe("Autofixture", () => {
 
         it("on wrong type in spec", () => {
             var subject = new Autofixture({
-                "name" : "number"
+                "name" : "number" // also "number < 5" etc?
             });
             chai.expect(() => {
                 subject.create(new ClassWithString(""));
@@ -575,6 +584,7 @@ describe("Autofixture", () => {
         };
 
         it("on invalid specs", () => {
+            // there are way too many of these
             expectToThrowOnInvalidStringSpec("string[]", "Invalid string autofixture spec: 'string[]'");
             expectToThrowOnInvalidStringSpec("string[5", "Invalid string autofixture spec: 'string[5'");
             expectToThrowOnInvalidStringSpec("string 5]", "Invalid string autofixture spec: 'string 5]'");
@@ -609,6 +619,5 @@ describe("Autofixture", () => {
             expectToThrowOnInvalidNumberSpec("integer in 1,2>", "Invalid number autofixture spec: 'integer in 1,2>'");
             expectToThrowOnInvalidNumberSpec("integer in <1 2>", "Invalid number autofixture spec: 'integer in <1 2>'");
         });
-
     });
 });
