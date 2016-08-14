@@ -12,7 +12,13 @@ import { Contact } from "../Contact";
 import { ContactFixture } from "../test-helpers/ContactFixture";
 var randomatic = require("randomatic");
 
-class Autofixture {
+interface ParsedSpec {
+    isInteger: boolean;
+    lowerBound?: number;
+    upperBound?: number;
+};
+
+export class Autofixture {
     private options;
 
     constructor(options = undefined) {
@@ -78,10 +84,13 @@ class Autofixture {
         var booleanOk = type === "boolean" && spec === "boolean";
         var stringOk = type === "string" && /^string/.test(spec);
         var numberOk = type === "number" && /^number/.test(spec);
+        var integerOk = type === "number" && /^integer/.test(spec);
 
-        if (!booleanOk && !stringOk && !numberOk) {
-            throw Error("AutoFixture spec '" + spec + "' not compatible with type '" + type + "'");
+        if (booleanOk || stringOk || numberOk || integerOk) {
+            return;
         }
+
+        throw Error("AutoFixture spec '" + spec + "' not compatible with type '" + type + "'");
     }
 
     private isTypeSupported(type: string) {
@@ -96,10 +105,10 @@ class Autofixture {
         if (spec === "boolean") {
             return this.generateBoolean();
         }
-        if (/^string.*/.test(spec)) {
+        if (/^string/.test(spec)) {
             return this.generateString(spec);
         }
-        if (/^number.*/.test(spec)) {
+        if (/^number/.test(spec) || /^integer/.test(spec)) {
             return this.generateNumber(spec);
         }
         throw new Error("invalid type in autofixture spec '" + spec + "'");
@@ -124,34 +133,98 @@ class Autofixture {
     }
 
     private generateNumber(spec: string) {
+        var parsedSpec: ParsedSpec;
         if (spec === "number") {
-            return this.random();
+            parsedSpec = {
+                isInteger: false
+            };
+        } else if (spec === "integer") {
+            parsedSpec = {
+                isInteger: true
+            };
+        } else {
+            parsedSpec = this.parseAsOnesidedSpec(spec) || this.parseAsTwosidesSpec(spec);
+            if (!parsedSpec) {
+                throw Error("Could not parse number spec: '" + spec + "'");
+            }
+        }
+        return this.createNumberFromSpec(parsedSpec);
+    }
+
+    private parseAsOnesidedSpec(spec: string) : ParsedSpec {
+        // number or integer, followed by < or >, followed by a real value
+        var match = /^(number|integer)\s*(\>|\<)\s*(\d*\.?\d+)$/.exec(spec);
+        if (!match) {
+            return undefined;
         }
 
-        var atLeast = /^number\s*\>\s*(\d*\.?\d+)$/.exec(spec);
-        if (atLeast) {
-            var limit = parseFloat(atLeast[1]);
-            return limit + this.random();
+        var isInteger = match[1] === "integer";
+        if (isInteger && /\./.exec(match[3])) {
+            throw new Error("Integer spec cannot contain real value: " + spec);
+        }
+        var isUpperBound = match[2] === "<";
+        var limit = parseFloat(match[3]);
+
+        if (isUpperBound) {
+            return {
+                isInteger: isInteger,
+                upperBound: limit
+            };
+        } else {
+            return {
+                isInteger: isInteger,
+                lowerBound: limit
+            };
+        }
+    };
+
+    private parseAsTwosidesSpec(spec: string) : ParsedSpec {
+        // number or integer, followed by 'in', followed by <a, b> with a and b real values
+        var match = /^(number|integer)\s+in\s*\<\s*(\d*\.?\d+)\s*,\s*(\d*\.?\d+)\s*\>$/.exec(spec);
+        if (!match) {
+            return undefined;
         }
 
-        var atMost = /^number\s*\<\s*(\d*\.?\d+)$/.exec(spec);
-        if (atMost) {
-            var limit = parseFloat(atMost[1]);
-            return limit - 1 + this.random();
+        var isInteger = match[1] === "integer";
+
+        if (isInteger) {
+            if (/\./.exec(match[2]) || /\./.exec(match[3])) {
+                throw new Error("Integer spec cannot contain real value: " + spec);
+            }
         }
 
-        var inRange = /^number in \<(\d*\.?\d+),(\d*\.?\d+)\>$/.exec(spec);
-        if (inRange) {
-            var min = parseFloat(inRange[1]);
-            var max = parseFloat(inRange[2]);
-            return min + (max - min) * this.random();
+        var lowerLimit = parseFloat(match[2]);
+        var upperLimit = parseFloat(match[3]);
+
+        return {
+            isInteger: isInteger,
+            lowerBound: lowerLimit,
+            upperBound: upperLimit
+        };
+    };
+
+    private createNumberFromSpec(spec: ParsedSpec) {
+        var value: number;
+
+        if (spec.lowerBound && spec.upperBound) {
+            value = spec.lowerBound + (spec.upperBound - spec.lowerBound) * this.random();
+        } else if (spec.lowerBound) {
+            value = spec.lowerBound + 1000 * this.random();
+        } else if (spec.upperBound) {
+            value = spec.upperBound - 1000 * this.random();
+        } else {
+            value = 1000 * this.random();
         }
 
-        throw new Error("invalid number autofixture spec");
+        return spec.isInteger ? Math.floor(value) : value;
     }
 
     private random() {
         return Math.random();
+    }
+
+    private randomInteger() {
+        return Math.floor(100000 * Math.random());
     }
 };
 
@@ -217,7 +290,7 @@ describe("Autofixture", () => {
         chai.expect(argumentObject.name).to.equal("name");
     });
 
-    describe("can create many", () => {
+    describe("creating many", () => {
         var values : ClassWithEverything[];
 
         beforeEach(() => {
@@ -244,7 +317,7 @@ describe("Autofixture", () => {
     });
 
     describe("creating booleans", () => {
-        it("with any value", () => {
+        it("returns a boolean", () => {
             var subject = new Autofixture({
                 "flag" : "boolean"
             });
@@ -281,38 +354,58 @@ describe("Autofixture", () => {
             chai.expect(value.value).to.be.at.most(3.2);
         });
 
-        it("with a value below a limit", () => {
+        it("with a value in a range", () => {
             var subject = new Autofixture({
-                "value" : "number in <1.2,2.3>"
+                "value" : "number in <1.222, 1.223>"
             });
             var value = subject.create(new ClassWithNumber(0));
             chai.expect(value.value).to.be.a("number");
-            chai.expect(value.value).to.be.at.least(1.2);
-            chai.expect(value.value).to.be.at.most(2.3);
+            chai.expect(value.value).to.be.at.least(1.222);
+            chai.expect(value.value).to.be.at.most(1.223);
         });
 
-        it("with an integer", () => {
+    });
+
+    describe("creating integers", () => {
+
+        it("with any value", () => {
             var subject = new Autofixture({
                 "value" : "integer"
             });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
+            chai.expect(value.value % 1).to.equal(0);
         });
 
-        it("with an integer above a limit", () => {
+        it("with a value above a limit", () => {
             var subject = new Autofixture({
                 "value" : "integer > 3"
             });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
+            chai.expect(value.value % 1).to.equal(0);
+            chai.expect(value.value).to.be.at.least(4);
         });
 
-        it("with an integer below a limit", () => {
+        it("with a value below a limit", () => {
             var subject = new Autofixture({
-                "value" : "integer < 3"
+                "value" : "integer < 8"
             });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
+            chai.expect(value.value % 1).to.equal(0);
+            chai.expect(value.value).to.be.at.most(7);
         });
 
-        it("with an integer below a limit", () => {
+        it("with a value in a range", () => {
             var subject = new Autofixture({
-                "value" : "integer in <4,6>"
+                "value" : "integer in <4,8>"
             });
+            var value = subject.create(new ClassWithNumber(0));
+            chai.expect(value.value).to.be.a("number");
+            chai.expect(value.value % 1).to.equal(0);
+            chai.expect(value.value).to.be.at.least(5);
+            chai.expect(value.value).to.be.at.most(7);
         });
     });
 
@@ -341,11 +434,11 @@ describe("Autofixture", () => {
     describe("handling errors", () => {
         it("of misspelled field", () => {
             var subject = new Autofixture({
-                "mane" : "string"
+                "naem" : "string"
             });
             chai.expect(() => {
                 subject.create(new ClassWithString(""));
-            }).to.throw(Error, /field \'mane\' that is not in the type/);
+            }).to.throw(Error, /field \'naem\' that is not in the type/);
         });
 
         it("on wrong type in spec", () => {
