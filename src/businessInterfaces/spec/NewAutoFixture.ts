@@ -1,9 +1,8 @@
-// can create integers
 // can set a random number provider
 // can use a function as spec for a field, which is passed in the autofixture
-// exposes static functions for string, number and bool creation
 // nested object support
 // objects with arrays as properties, hmmm
+// create many integers and strings etc.
 
 "use strict";
 
@@ -103,7 +102,7 @@ export class Autofixture {
 
     private generateFromSpec(spec: string) {
         if (spec === "boolean") {
-            return this.generateBoolean();
+            return Autofixture.createBoolean();
         }
         if (/^string/.test(spec)) {
             return this.generateString(spec);
@@ -114,22 +113,31 @@ export class Autofixture {
         throw new Error("invalid type in autofixture spec '" + spec + "'");
     }
 
-    private generateBoolean() {
-        return this.random() > 0.5;
+    public static createBoolean() {
+        return Math.random() > 0.5;
     }
 
     private generateString(spec: string) {
-        if (spec === "string") {
-            var defaultLength = 32;
-            return randomatic(defaultLength);
-        }
+        var length: number;
 
-        var stringWithLength = /^string\[(\d+)\]$/.exec(spec);
-        if (stringWithLength) {
-            var length = parseInt(stringWithLength[1]);
-            return randomatic(length);
+        if (spec === "string") {
+
+            return Autofixture.createString();
+
+        } else {
+            // string followed by length in []
+            var parsedString = /^string\s*\[\s*(\d+)\s*\]$/.exec(spec);
+            if (parsedString) {
+                length = parseInt(parsedString[1]);
+            } else {
+                throw new Error("Invalid string autofixture spec: " + spec);
+            }
+            return Autofixture.createString(length);
         }
-        throw new Error("Invalid string autofixture spec: " + spec);
+    }
+
+    public static createString(length: number = 10) {
+        return randomatic(length);
     }
 
     private generateNumber(spec: string) {
@@ -204,31 +212,100 @@ export class Autofixture {
     };
 
     private createNumberFromSpec(spec: ParsedSpec) {
-        var value: number;
 
-        if (spec.lowerBound && spec.upperBound) {
-            value = spec.lowerBound + (spec.upperBound - spec.lowerBound) * this.random();
-        } else if (spec.lowerBound) {
-            value = spec.lowerBound + 1000 * this.random();
-        } else if (spec.upperBound) {
-            value = spec.upperBound - 1000 * this.random();
+        if (spec.isInteger) {
+            if (spec.lowerBound && spec.upperBound) {
+                return Autofixture.createIntegerBetween(spec.lowerBound, spec.upperBound);
+            } else if (spec.lowerBound) {
+                return Autofixture.createIntegerAbove(spec.lowerBound);
+            } else if (spec.upperBound) {
+                return Autofixture.createIntegerBelow(spec.upperBound);
+            } else {
+                return Autofixture.createInteger();
+            }
+
         } else {
-            value = 1000 * this.random();
+
+            if (spec.lowerBound && spec.upperBound) {
+                return Autofixture.createNumberBetween(spec.lowerBound, spec.upperBound);
+            } else if (spec.lowerBound) {
+                return Autofixture.createNumberAbove(spec.lowerBound);
+            } else if (spec.upperBound) {
+                return Autofixture.createNumberBelow(spec.upperBound);
+            } else {
+                return Autofixture.createNumber();
+            }
         }
-
-        return spec.isInteger ? Math.floor(value) : value;
     }
 
-    private random() {
-        return Math.random();
+    public static createNumber() {
+        return 1000 * Math.random();
     }
 
-    private randomInteger() {
-        return Math.floor(100000 * Math.random());
+    public static createNumberBelow(upperBound: number) {
+        return upperBound - 1000 * Math.random();
+    }
+
+    public static createNumberAbove(lowerBound: number) {
+        return lowerBound + 1000 * Math.random();
+    }
+
+    public static createNumberBetween(lowerBound: number, upperBound: number) {
+        return lowerBound + (upperBound - lowerBound) * Math.random();
+    }
+
+    public static createInteger() {
+        return Math.floor(Autofixture.createNumber());
+    }
+
+    public static createIntegerBelow(upperBound: number) {
+        return Math.floor(Autofixture.createNumberBelow(upperBound));
+    }
+
+    public static createIntegerAbove(lowerBound: number) {
+        return Math.floor(Autofixture.createNumberAbove(lowerBound));
+    }
+
+    public static createIntegerBetween(lowerBound: number, upperBound: number) {
+        return Math.floor(Autofixture.createNumberBetween(lowerBound, upperBound));
     }
 };
 
 describe("Autofixture", () => {
+
+    describe("static functions", () => {
+
+        it("should return boolean", () => {
+            chai.expect(Autofixture.createBoolean()).to.be.a("boolean");
+        });
+        it("should return string", () => {
+            chai.expect(Autofixture.createString()).to.be.a("string");
+        });
+        it("should return string of given length", () => {
+            chai.expect(Autofixture.createString(10)).to.be.a("string");
+        });
+        it("should return a number", () => {
+            chai.expect(Autofixture.createNumber()).to.be.a("number");
+        });
+        it("should return a number above a limit", () => {
+            chai.expect(Autofixture.createNumberAbove(0)).to.be.a("number");
+        });
+        it("should return a number below a limit", () => {
+            chai.expect(Autofixture.createNumberBelow(0)).to.be.a("number");
+        });
+        it("should return an integer below in a range", () => {
+            chai.expect(Autofixture.createNumberBetween(0, 1)).to.be.a("number");
+        });
+        it("should return an integer above a limit", () => {
+            chai.expect(Autofixture.createIntegerAbove(0)).to.be.a("number");
+        });
+        it("should return an integer below a limit", () => {
+            chai.expect(Autofixture.createIntegerBelow(0)).to.be.a("number");
+        });
+        it("should return an integer below in a range", () => {
+            chai.expect(Autofixture.createIntegerBetween(0, 1)).to.be.a("number");
+        });
+    });
 
     class ClassWithBoolean {
         public flag: boolean;
@@ -452,7 +529,7 @@ describe("Autofixture", () => {
 
         /*
         // valid: string [ 5 ], "number in < 5.1 , 6.1 >", "number < 2", "number < .2"
-        // invalid: sting, string[5, string[],
+        // invalid: sting, string[5, string[], integer < 2.3, leading and trailing space
         it("invalid specs", () => {
             chai.expect(() => {
                 new Autofixture({
