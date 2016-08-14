@@ -70,6 +70,10 @@ export class Autofixture {
     }
 
     public createMany<T extends Object>(template: T, count = 3) : T[] {
+        return this.createManyObjects(template, count, this.options);
+    }
+
+    private createManyObjects<T extends Object>(template: T, count: number, options?: Object) : T[] {
         var results = new Array<T>();
         for (var i = 0; i < count; i++) {
             results.push(this.createObject(template, this.options));
@@ -88,6 +92,9 @@ export class Autofixture {
             if (type === "actualObject") { // use TS2.0 to limit the set of values for this field
                 var optionsForObject = options && options[name];
                 result[name] = this.createObject(template[name], optionsForObject);
+            } else if (type === "actualArray") {
+                var optionsForObject = options && options[name];
+                result[name] = this.createManyObjects(template[name][0], 3, optionsForObject);
             } else {
                 result[name] = this.createSimpleProperty(name, type, options);
             }
@@ -114,7 +121,12 @@ export class Autofixture {
     }
 
     private actualTypeOfField<T extends Object>(t: T, name: string) {
-        var type = typeof t[name];
+        var field = t[name];
+        var type = typeof field;
+
+        if ( Object.prototype.toString.call(field) === "[object Array]") {
+            return "actualArray";
+        }
         if (type === "object") {
             return "actualObject";
         }
@@ -154,7 +166,7 @@ export class Autofixture {
     }
 
     private throwOnUnsupportedType(type: string) {
-        if (type === "boolean" || type === "string" || type === "number" || type === "actualObject") {
+        if (type === "boolean" || type === "string" || type === "number" || type === "actualObject" || type === "actualArray") {
             return;
         }
         throw Error("Autofixture cannot generate values of type '" + type + "'");
@@ -372,6 +384,15 @@ describe("Autofixture", () => {
         }
     }
 
+    class ClassWithNestedArray {
+        public label: string;
+        public nestedArray: ClassWithEverything[];
+        constructor() {
+            this.label = "";
+            this.nestedArray = [new ClassWithEverything];
+        }
+    }
+
     it("can create without spec", () => {
         var subject = new Autofixture();
         var value = subject.create(new ClassWithEverything()); // TODO use fixtures for this
@@ -422,6 +443,25 @@ describe("Autofixture", () => {
             chai.expect(value.nested.name).to.have.lengthOf(5);
         });
 
+    });
+
+    describe("can create object with nested array of objects", () => {
+
+        it("creates several objects in nested array", () => {
+            var subject = new Autofixture();
+            var value = subject.create(new ClassWithNestedArray());
+            chai.expect(value.nestedArray).to.be.an("Array");
+            chai.expect(value.nestedArray).to.have.length.above(1);
+        });
+
+        it("create objects of the expected type", () => {
+            var subject = new Autofixture();
+            var value = subject.create(new ClassWithNestedArray());
+            chai.expect(value.nestedArray[0].flag).to.be.a("boolean");
+            chai.expect(value.nestedArray[0].value).to.be.a("number");
+            chai.expect(value.nestedArray[0].name).to.be.a("string");
+            chai.expect(value.nestedArray[0].name).to.not.be.empty;
+        });
     });
 
     describe("creating many", () => {
