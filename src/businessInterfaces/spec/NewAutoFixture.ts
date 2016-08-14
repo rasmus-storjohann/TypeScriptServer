@@ -18,6 +18,47 @@ interface ParsedSpec {
 };
 
 export class Autofixture {
+
+    public static createBoolean() {
+        return Math.random() > 0.5;
+    }
+
+    public static createString(length = 10) {
+        return randomatic(length);
+    }
+
+    public static createNumber() {
+        return 1000 * Math.random();
+    }
+
+    public static createNumberBelow(upperBound: number) {
+        return upperBound - 1000 * Math.random();
+    }
+
+    public static createNumberAbove(lowerBound: number) {
+        return lowerBound + 1000 * Math.random();
+    }
+
+    public static createNumberBetween(lowerBound: number, upperBound: number) {
+        return lowerBound + (upperBound - lowerBound) * Math.random();
+    }
+
+    public static createInteger() {
+        return Math.floor(Autofixture.createNumber());
+    }
+
+    public static createIntegerBelow(upperBound: number) {
+        return Math.floor(Autofixture.createNumberBelow(upperBound));
+    }
+
+    public static createIntegerAbove(lowerBound: number) {
+        return Math.floor(Autofixture.createNumberAbove(lowerBound));
+    }
+
+    public static createIntegerBetween(lowerBound: number, upperBound: number) {
+        return Math.floor(Autofixture.createNumberBetween(lowerBound, upperBound));
+    }
+
     private options;
 
     constructor(options = undefined) {
@@ -108,11 +149,7 @@ export class Autofixture {
         if (/^number/.test(spec) || /^integer/.test(spec)) {
             return this.createNumberFromSpec(spec);
         }
-        throw new Error("invalid type in autofixture spec '" + spec + "'");
-    }
-
-    public static createBoolean() {
-        return Math.random() > 0.5;
+        throw new Error("Invalid type in autofixture spec '" + spec + "'");
     }
 
     private createStringFromSpec(spec: string) {
@@ -123,19 +160,15 @@ export class Autofixture {
             return Autofixture.createString();
 
         } else {
-            // string followed by length in []
+            // string followed by length inside []
             var parsedString = /^string\s*\[\s*(\d+)\s*\]$/.exec(spec);
             if (parsedString) {
-                length = parseInt(parsedString[1]);
+                length = parseInt(parsedString[1], 10);
+                return Autofixture.createString(length);
             } else {
-                throw new Error("Invalid string autofixture spec: " + spec);
+                throw new Error("Invalid string autofixture spec: '" + spec + "'");
             }
-            return Autofixture.createString(length);
         }
-    }
-
-    public static createString(length = 10) {
-        return randomatic(length);
     }
 
     private createNumberFromSpec(spec: string) {
@@ -157,7 +190,7 @@ export class Autofixture {
             parsedSpec = this.parseAsOnesidedSpec(spec) || this.parseAsTwosidesSpec(spec);
         }
         if (!parsedSpec) {
-            throw Error("Could not parse number spec: '" + spec + "'");
+            throw Error("Invalid number autofixture spec: '" + spec + "'");
         }
         return parsedSpec;
     }
@@ -191,8 +224,9 @@ export class Autofixture {
 
     private validateIntegerSpec(spec: string) {
         var specContainsPeriod = spec.indexOf(".") >= 0;
+
         if (specContainsPeriod) {
-            throw new Error("Integer spec cannot contain real value: " + spec);
+            throw new Error("Invalid integer autofixture spec contains real value: " + spec);
         }
     }
 
@@ -245,38 +279,6 @@ export class Autofixture {
                 return Autofixture.createNumber();
             }
         }
-    }
-
-    public static createNumber() {
-        return 1000 * Math.random();
-    }
-
-    public static createNumberBelow(upperBound: number) {
-        return upperBound - 1000 * Math.random();
-    }
-
-    public static createNumberAbove(lowerBound: number) {
-        return lowerBound + 1000 * Math.random();
-    }
-
-    public static createNumberBetween(lowerBound: number, upperBound: number) {
-        return lowerBound + (upperBound - lowerBound) * Math.random();
-    }
-
-    public static createInteger() {
-        return Math.floor(Autofixture.createNumber());
-    }
-
-    public static createIntegerBelow(upperBound: number) {
-        return Math.floor(Autofixture.createNumberBelow(upperBound));
-    }
-
-    public static createIntegerAbove(lowerBound: number) {
-        return Math.floor(Autofixture.createNumberAbove(lowerBound));
-    }
-
-    public static createIntegerBetween(lowerBound: number, upperBound: number) {
-        return Math.floor(Autofixture.createNumberBetween(lowerBound, upperBound));
     }
 };
 
@@ -534,16 +536,62 @@ describe("Autofixture", () => {
             }).to.throw(Error, /\'number\' not compatible with type \'string\'/);
         });
 
-        /*
-        // valid: string [ 5 ], "number in < 5.1 , 6.1 >", "number < 2", "number < .2"
+        var expectToThrowOnInvalidStringSpec = function(invalidSpec: string, expected: string) {
+            var subject = new Autofixture({
+                "name" : invalidSpec
+            });
+            var expectedToThrow = () => {
+                subject.create(new ClassWithString(""));
+            };
+            chai.expect(expectedToThrow).to.throw(Error, expected);
+        };
+
+        var expectToThrowOnInvalidNumberSpec = function(invalidSpec: string, expected: string) {
+            var subject = new Autofixture({
+                "value" : invalidSpec
+            });
+            var expectedToThrow = () => {
+                subject.create(new ClassWithNumber(0));
+            };
+            chai.expect(expectedToThrow).to.throw(Error, expected);
+        };
+        // valid: string [ 5 ], "number in < 5.1 , 6.1 >", "number < 2", "number < .2", leading and trailing space
         // invalid: sting, string[5, string[], integer < 2.3, leading and trailing space
-        it("invalid specs", () => {
-            chai.expect(() => {
-                new Autofixture({
-                    "name" : "string[5]"
-                });
-            }).to.throw(Error);
+        it("on invalid specs", () => {
+            expectToThrowOnInvalidStringSpec("string[]", "Invalid string autofixture spec: 'string[]'");
+            expectToThrowOnInvalidStringSpec("string[5", "Invalid string autofixture spec: 'string[5'");
+            expectToThrowOnInvalidStringSpec("string 5]", "Invalid string autofixture spec: 'string 5]'");
+            expectToThrowOnInvalidStringSpec("string[5.3]", "Invalid string autofixture spec: 'string[5.3]'");
+            expectToThrowOnInvalidStringSpec("sting", "AutoFixture spec 'sting' not compatible with type 'string'");
+
+            expectToThrowOnInvalidNumberSpec("number 5", "Invalid number autofixture spec: 'number 5'");
+            expectToThrowOnInvalidNumberSpec("number <= 5", "Invalid number autofixture spec: 'number <= 5'");
+            expectToThrowOnInvalidNumberSpec("number >= 5", "Invalid number autofixture spec: 'number >= 5'");
+            expectToThrowOnInvalidNumberSpec("3 > number > 4", "AutoFixture spec '3 > number > 4' not compatible with type 'number'");
+            expectToThrowOnInvalidNumberSpec("3 < number < 4", "AutoFixture spec '3 < number < 4' not compatible with type 'number'");
+            expectToThrowOnInvalidNumberSpec("number >", "Invalid number autofixture spec: 'number >'");
+            expectToThrowOnInvalidNumberSpec("number <", "Invalid number autofixture spec: 'number <'");
+            expectToThrowOnInvalidNumberSpec("number <1,2>", "Invalid number autofixture spec: 'number <1,2>'");
+            expectToThrowOnInvalidNumberSpec("number in <1,2", "Invalid number autofixture spec: 'number in <1,2'");
+            expectToThrowOnInvalidNumberSpec("number in 1,2>", "Invalid number autofixture spec: 'number in 1,2>'");
+            expectToThrowOnInvalidNumberSpec("number in <1 2>", "Invalid number autofixture spec: 'number in <1 2>'");
+
+            expectToThrowOnInvalidNumberSpec("integer < 5.5", "Invalid integer autofixture spec contains real value: 5.5");
+            expectToThrowOnInvalidNumberSpec("integer > 5.5", "Invalid integer autofixture spec contains real value: 5.5");
+            expectToThrowOnInvalidNumberSpec("integer in <1, 5.5>", "Invalid integer autofixture spec contains real value: 5.5");
+            expectToThrowOnInvalidNumberSpec("integer in <1.1, 5>", "Invalid integer autofixture spec contains real value: 1.1");
+            expectToThrowOnInvalidNumberSpec("integer 5", "Invalid number autofixture spec: 'integer 5'");
+            expectToThrowOnInvalidNumberSpec("integer <= 5", "Invalid number autofixture spec: 'integer <= 5'");
+            expectToThrowOnInvalidNumberSpec("integer >= 5", "Invalid number autofixture spec: 'integer >= 5'");
+            expectToThrowOnInvalidNumberSpec("3 > integer > 4", "AutoFixture spec '3 > integer > 4' not compatible with type 'number'");
+            expectToThrowOnInvalidNumberSpec("3 < integer < 4", "AutoFixture spec '3 < integer < 4' not compatible with type 'number'");
+            expectToThrowOnInvalidNumberSpec("integer >", "Invalid number autofixture spec: 'integer >'");
+            expectToThrowOnInvalidNumberSpec("integer <", "Invalid number autofixture spec: 'integer <'");
+            expectToThrowOnInvalidNumberSpec("integer <1,2>", "Invalid number autofixture spec: 'integer <1,2>'");
+            expectToThrowOnInvalidNumberSpec("integer in <1,2", "Invalid number autofixture spec: 'integer in <1,2'");
+            expectToThrowOnInvalidNumberSpec("integer in 1,2>", "Invalid number autofixture spec: 'integer in 1,2>'");
+            expectToThrowOnInvalidNumberSpec("integer in <1 2>", "Invalid number autofixture spec: 'integer in <1 2>'");
         });
-        */
+
     });
 });
