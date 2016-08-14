@@ -1,8 +1,8 @@
 // can set a random number provider: https://www.npmjs.com/package/random-seed
 // can use a function as spec for a field, which is passed in the autofixture
-// nested array support
 // objects with arrays as properties, hmmm
 // create arrays of basic types, e.g. integers and strings etc.
+// would be nice to be able to specify how many elements in the nested array
 
 "use strict";
 
@@ -76,7 +76,7 @@ export class Autofixture {
     private createManyObjects<T extends Object>(template: T, count: number, options?: Object) : T[] {
         var results = new Array<T>();
         for (var i = 0; i < count; i++) {
-            results.push(this.createObject(template, this.options));
+            results.push(this.createObject(template, options));
         }
         return results;
     }
@@ -90,11 +90,15 @@ export class Autofixture {
         this.forEachProperty(result, (name, value) => {
             var type = this.actualTypeOfField(result, name);
             if (type === "actualObject") { // use TS2.0 to limit the set of values for this field
+
                 var optionsForObject = options && options[name];
                 result[name] = this.createObject(template[name], optionsForObject);
+
             } else if (type === "actualArray") {
+
                 var optionsForObject = options && options[name];
                 result[name] = this.createManyObjects(template[name][0], 3, optionsForObject);
+
             } else {
                 result[name] = this.createSimpleProperty(name, type, options);
             }
@@ -104,6 +108,9 @@ export class Autofixture {
     }
 
     private throwIfOptionsContainsFieldsNotIn<T>(template: T, options?: Object) {
+        if (!options) {
+            return;
+        }
         this.forEachProperty(options, (name, value) => {
             if (!template.hasOwnProperty(name)) {
                 throw Error("Autofixture specifies field '" + name + "' that is not in the type");
@@ -343,20 +350,6 @@ describe("Autofixture", () => {
         });
     });
 
-    class ClassWithBoolean {
-        public flag: boolean;
-        constructor(flag: boolean) {
-            this.flag = flag;
-        }
-    }
-
-    class ClassWithString {
-        public name: string;
-        constructor(name: string) {
-            this.name = name;
-        }
-    };
-
     class ClassWithNumber {
         public value: number;
         constructor(value: number) {
@@ -364,7 +357,7 @@ describe("Autofixture", () => {
         }
     }
 
-    class ClassWithEverything {
+    class SimpleClass {
         public flag: boolean;
         public value: number;
         public name: string;
@@ -375,27 +368,9 @@ describe("Autofixture", () => {
         }
     };
 
-    class ClassWithNestedClass {
-        public label: string;
-        public nested: ClassWithEverything;
-        constructor() {
-            this.label = "";
-            this.nested = new ClassWithEverything;
-        }
-    }
-
-    class ClassWithNestedArray {
-        public label: string;
-        public nestedArray: ClassWithEverything[];
-        constructor() {
-            this.label = "";
-            this.nestedArray = [new ClassWithEverything];
-        }
-    }
-
     it("can create without spec", () => {
         var subject = new Autofixture();
-        var value = subject.create(new ClassWithEverything()); // TODO use fixtures for this
+        var value = subject.create(new SimpleClass()); // TODO use fixtures for this
         chai.expect(value.flag).to.be.a("boolean");
         chai.expect(value.value).to.be.a("number");
         chai.expect(value.name).to.be.a("string");
@@ -405,7 +380,7 @@ describe("Autofixture", () => {
         var subject = new Autofixture({
             "value" : "number > 5"
         });
-        var value = subject.create(new ClassWithEverything());
+        var value = subject.create(new SimpleClass());
         chai.expect(value.value).to.be.a("number");
         chai.expect(value.value).to.be.at.least(5);
         chai.expect(value.name).to.be.a("string");
@@ -414,7 +389,8 @@ describe("Autofixture", () => {
 
     it("does not modify argument object", () => {
         var subject = new Autofixture();
-        var argumentObject = new ClassWithString("name");
+        var argumentObject = new SimpleClass();
+        argumentObject.name = "name";
 
         subject.create(argumentObject);
 
@@ -422,6 +398,15 @@ describe("Autofixture", () => {
     });
 
     describe("can create nested objects", () => {
+
+        class ClassWithNestedClass {
+            public label: string;
+            public nested: SimpleClass;
+            constructor() {
+                this.label = "";
+                this.nested = new SimpleClass;
+            }
+        }
 
         it("without spec", () => {
             var subject = new Autofixture();
@@ -447,6 +432,15 @@ describe("Autofixture", () => {
 
     describe("can create object with nested array of objects", () => {
 
+        class ClassWithNestedArray {
+            public label: string;
+            public nestedArray: SimpleClass[];
+            constructor() {
+                this.label = "";
+                this.nestedArray = [new SimpleClass()];
+            }
+        }
+
         it("creates several objects in nested array", () => {
             var subject = new Autofixture();
             var value = subject.create(new ClassWithNestedArray());
@@ -462,14 +456,24 @@ describe("Autofixture", () => {
             chai.expect(value.nestedArray[0].name).to.be.a("string");
             chai.expect(value.nestedArray[0].name).to.not.be.empty;
         });
+
+        it("with spec applying to the array", () => {
+            var subject = new Autofixture({
+                "nestedArray" : {
+                    "name" : "string[5]"
+                }
+            });
+            var value = subject.create(new ClassWithNestedArray());
+            chai.expect(value.nestedArray[0].name).to.have.lengthOf(5);
+        });
     });
 
     describe("creating many", () => {
-        var values : ClassWithEverything[];
+        var values : SimpleClass[];
 
         beforeEach(() => {
             var subject = new Autofixture();
-            values = subject.createMany(new ClassWithEverything());
+            values = subject.createMany(new SimpleClass());
         });
 
         it("returns an array of several elements", () => {
@@ -491,6 +495,14 @@ describe("Autofixture", () => {
     });
 
     describe("creating booleans", () => {
+
+        class ClassWithBoolean {
+            public flag: boolean;
+            constructor(flag: boolean) {
+                this.flag = flag;
+            }
+        }
+
         it("returns a boolean", () => {
             var subject = new Autofixture({
                 "flag" : "boolean"
@@ -599,6 +611,13 @@ describe("Autofixture", () => {
 
     describe("creating strings", () => {
 
+        class ClassWithString {
+            public name: string;
+            constructor(name: string) {
+                this.name = name;
+            }
+        };
+
         it("with default length", () => {
             var subject = new Autofixture({
                 "name" : "string"
@@ -631,7 +650,7 @@ describe("Autofixture", () => {
                 "naem" : "string"
             });
             chai.expect(() => {
-                subject.create(new ClassWithString(""));
+                subject.create(new SimpleClass());
             }).to.throw(Error, /field \'naem\' that is not in the type/);
         });
 
@@ -640,7 +659,7 @@ describe("Autofixture", () => {
                 "name" : "number" // also "number < 5" etc?
             });
             chai.expect(() => {
-                subject.create(new ClassWithString(""));
+                subject.create(new SimpleClass());
             }).to.throw(Error, /\'number\' not compatible with type \'string\'/);
         });
 
@@ -649,7 +668,7 @@ describe("Autofixture", () => {
                 "name" : invalidSpec
             });
             var expectedToThrow = () => {
-                subject.create(new ClassWithString(""));
+                subject.create(new SimpleClass());
             };
             chai.expect(expectedToThrow).to.throw(Error, expected);
         };
